@@ -1,0 +1,20 @@
+TICKET-016
+Status: planned
+
+Problem:
+- In a 3-4 person room nobody can tell who is talking: the tiles are identical and the
+  only feedback is "you are talking" on your own button. People constantly ask
+  "who was that?".
+
+Requested changes:
+1. Detect the speaking level of the local mic and of every remote stream with a WebAudio
+   AnalyserNode and light up the corresponding tile (green glow + "speaking" badge).
+2. Show "🎙️ <name> is talking" in the room header.
+3. Everything must degrade silently: no WebAudio support (or a blocked AudioContext)
+   must not break the room - the feature is simply switched off.
+
+Plan:
+- Backup to backups/backup016/ (index.html + README.md).
+- Add analyser helpers + a small polling loop that updates the tiles.
+- Add self-test checks: the speaking elements exist and nothing throws without WebAudio.
+- Update ticket status to done.

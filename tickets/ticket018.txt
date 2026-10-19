@@ -1,0 +1,20 @@
+TICKET-018
+Status: planned
+
+Problem:
+- The user repeatedly has to guess what to do next: "send this text to them, then wait,
+  then paste their answer...". The README explains it, but the app itself does not.
+  In a 4 person room with 3 peers there are 3 different steps to track.
+
+Requested changes:
+1. Add a "What to do next" line/panel in the room that is derived from the current state:
+   - nobody connected -> "make an offer and send it to someone"
+   - waiting for an answer -> "send your offer to X and paste their answer below"
+   - waiting for them -> "send your answer to X"
+   - all connected -> "everyone is connected - hold the button to talk"
+
+Plan:
+- Backup to backups/backup018/ (index.html + README.md).
+- Add the guide element + a nextStep() function called from render().
+- Add self-test checks for the guide text in the different states.
+- Update ticket status to done.

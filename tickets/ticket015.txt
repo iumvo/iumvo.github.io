@@ -1,0 +1,21 @@
+TICKET-015
+Status: planned
+
+Problem:
+- Every session so far ended with the same caveat: "no TURN server - symmetric NAT may
+  fail". That is the last real reason two people cannot hear each other, and the app
+  gives the user no way to fix it.
+- A connection that fails says only "Failed" with no next step.
+
+Requested changes:
+1. Add an optional "Connection settings" panel in the lobby: a TURN server URL, user name
+   and credential. Saved in localStorage, applied to every RTCPeerConnection
+   (STUN servers are always kept).
+2. Support ?turn=... in the URL so a link can pre-fill the TURN server.
+3. When a peer connection fails, the error message points to the TURN setting.
+
+Plan:
+- Backup to backups/backup015/ (index.html + README.md).
+- Add the settings UI + iceServers() builder, use it in newPC().
+- Add self-test checks: TURN is persisted and ends up in pc.iceServers.
+- Update ticket status to done.

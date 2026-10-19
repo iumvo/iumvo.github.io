@@ -1,0 +1,23 @@
+TICKET-013
+Status: planned
+
+Problem:
+- Signaling is still 100% manual: the receiver has to long-press the SDP blob, choose
+  "copy", switch to the app, long-press again, choose "paste". On a phone that is the
+  most painful part of the whole app (see session-01/02 feedback: copy & paste is the
+  #1 usability complaint).
+- There is also no way to send the offer out of the page other than the clipboard.
+
+Requested changes:
+1. A "Paste" button next to every field that expects pasted SDP
+   (lobby "joinOffer", room "paste their answer", "+ Add a person" offer field):
+   reads the clipboard with navigator.clipboard.readText and falls back to
+   selecting the field + telling the user to press Ctrl/Cmd+V.
+2. A "Share" button next to every generated SDP (offer/answer): uses the Web Share API
+   when the browser has it (native share sheet on phones) and falls back to the clipboard.
+
+Plan:
+- Backup to backups/backup013/ (index.html + README.md).
+- Add pasteText()/shareText() helpers, wire them into the dynamic SDP rows and the lobby.
+- Add self-test checks that the buttons exist and that "paste" fills the field.
+- Update ticket status to done.

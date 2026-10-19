@@ -1,0 +1,18 @@
+TICKET-019
+Status: planned
+
+Problem:
+- The app always uses the system default microphone. On a desktop with a headset and a
+  built-in mic, or on a laptop where the user wants the headset, there is no way to pick.
+
+Requested changes:
+1. After the microphone is granted, list the available audio input devices and let the
+   user switch between them; the choice is remembered in localStorage.
+2. Switching replaces the track in every open peer connection (replaceTrack) so the
+   conversation does not break.
+
+Plan:
+- Backup to backups/backup019/ (index.html + README.md).
+- Add the device dropdown + switchDevice() + replaceTrack on all senders.
+- Add self-test checks (no devices -> the dropdown is hidden, no crash).
+- Update ticket status to done.

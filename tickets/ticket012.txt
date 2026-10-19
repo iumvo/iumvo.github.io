@@ -1,0 +1,20 @@
+TICKET-012
+Status: planned
+
+Problem:
+- bugs/bug2/noico.txt: the deployed site returns 404 for https://iumvo.github.io/favicon.ico
+  (the browser requests it automatically and the console gets noisy).
+- The page has no <meta name="description">, no theme-color and no Open Graph tags, so a
+  shared room link shows up as a bare URL in chat.
+
+Requested changes:
+1. Add a favicon without breaking the "one single file" promise -> inline SVG data URI
+   (no extra file, no 404, works on file:// too).
+2. Add meta description, theme-color and Open Graph / Twitter card tags so shared links
+   get a nice preview.
+
+Plan:
+- Backup to backups/backup012/ (index.html + README.md).
+- Add the <link rel="icon"> data URI and the meta tags in <head>.
+- Add a self-test check that the favicon link and the meta tags exist.
+- Update ticket status to done.

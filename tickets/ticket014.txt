@@ -1,0 +1,20 @@
+TICKET-014
+Status: planned
+
+Problem:
+- Push-to-talk can get stuck open: if the user holds the button (or the Space bar) and
+  then switches tab/window/app, no pointerup/keyup reaches the page and the microphone
+  stays LIVE - the user keeps broadcasting to the whole room without noticing.
+- On touch devices a long press can also raise the context menu.
+
+Requested changes:
+1. Release the mic on window blur, on visibilitychange (tab hidden) and on
+   pointercancel/lostpointercapture.
+2. Use pointer capture so "release to mute" works even if the finger slides off the button.
+3. Block the context menu on the PTT button and forbid text selection on it.
+
+Plan:
+- Backup to backups/backup014/ (index.html + README.md).
+- Rework the PTT wiring (pointer capture + blur/visibility safety).
+- Add self-test checks: the mic is muted again after a simulated blur.
+- Update ticket status to done.

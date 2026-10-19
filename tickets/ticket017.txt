@@ -1,0 +1,21 @@
+TICKET-017
+Status: planned
+
+Problem:
+- The connection state shown on the tiles comes from iceConnectionState only, so
+  "connected" can be shown while the audio is already gone, and a short network blip
+  immediately shows "Disconnected" with no recovery attempt.
+
+Requested changes:
+1. Use pc.connectionState (falling back to the ICE state) so the status matches what the
+   browser really thinks.
+2. A transient "disconnected" gets a 4 second grace period: if it recovers, nothing is
+   shown; if it does not, the peer is marked as failed and the Retry button appears.
+3. The failure message tells the user what to do (retry, or add a TURN server in the
+   connection settings).
+
+Plan:
+- Backup to backups/backup017/ (index.html + README.md).
+- Rework the status handling in newPC() and add the grace period.
+- Add self-test checks for the status mapping.
+- Update ticket status to done.

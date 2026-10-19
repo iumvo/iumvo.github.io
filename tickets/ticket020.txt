@@ -1,0 +1,18 @@
+TICKET-020
+Status: planned
+
+Problem:
+- The new features of this session (favicon/meta, paste & share, safe PTT, TURN settings,
+  speaking indicator, connection states, next-step guide, mic selection) are not
+  documented, and the regression test does not cover them.
+
+Requested changes:
+1. Extend tools/selftest.mjs with the new checks (must stay green).
+2. Update README.md: how it works, how to use, new troubleshooting entries, caveats.
+3. Write feedbacks/session04.txt (what was done, what is left, what the user must do).
+4. Commit everything locally (the container has no GitHub key - the user pushes).
+
+Plan:
+- Backup to backups/backup020/ (index.html + README.md).
+- Extend the test suite, update the docs, commit.
+- Update ticket status to done.
