@@ -126,6 +126,10 @@
 
   const $ = id => document.getElementById(id);
 
+  // Default values (set once on load)
+  $('nick').value = 'Kabanchik' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+  $('room').value = 'IUMIUMIUM';
+
   // ---------- errors ----------
   function showErr(id, msg) {
     const el = $(id);
@@ -506,6 +510,14 @@
     try {
       await initMic();
       enterRoom();
+      // Automatically create an offer to share so text appears immediately
+      if (peers.size < MAX_PEERS) {
+        try {
+          await makeOffer(null, 'Person 2');
+        } catch (e) {
+          showErr('roomErr', 'Failed to create offer: ' + e.message);
+        }
+      }
     } catch (e) {
       showErr('lobbyErr', e.message);
     }
