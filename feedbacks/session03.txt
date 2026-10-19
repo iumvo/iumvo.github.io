@@ -1,0 +1,73 @@
+SESSION-03 FEEDBACK (bug-fix session, 1 ticket)
+
+What was done this session:
+- ticket011 (DONE): Fixed the two critical bugs reported after session 02.
+
+  Root cause A - duplicate DOM id "room":
+    The lobby input (room-name field) and the room view both used id="room".
+    document.getElementById("room") returns the FIRST one in document order (the input), so
+    enterRoom() removed the "hidden" class from the input instead of the section and the room
+    view stayed display:none. The lobby was hidden at the same time => the page went completely
+    blank after "Create room". This was the real cause of the session-01 complaint too; the offer
+    text was always generated, just inside an invisible section.
+    Fix: the lobby input is now id="roomInput"; the section keeps id="room".
+
+  Root cause B - "const $" used before it was declared (introduced in session 02, ticket009):
+    The theme block called $('btnTheme') six lines before `const $ = id => ...` was evaluated.
+    const is in the temporal dead zone there, so the whole <script> died with
+    "ReferenceError: Cannot access '$' before initialization".
+    Everything after that line never ran: the default nickname/room generation, all button
+    handlers (Create did nothing), the theme toggle, the room link, the latency poll.
+    That is exactly why "the default room name and default user name generation disappeared".
+    Fix: `const $ = ...` is now the first statement of the script.
+
+  Hardening (so this can never happen again silently):
+  - A red error banner (window.onerror + unhandledrejection) shows any script error instead of
+    leaving a blank page.
+  - "Create room" opens the room FIRST and asks for the microphone afterwards, so a blocked or
+    missing mic can never stop the offer text from appearing (the connection is created without a
+    local track in that case).
+  - Peer cards are updated in place instead of being rebuilt, so text the user pasted into the
+    answer/offer fields is no longer wiped by a re-render (ICE state changes used to trigger it).
+  - The "Copy offer" / "Copy answer" buttons now have a working label and a working clipboard
+    fallback (execCommand) for non-secure contexts; a missing "Copy offer" label was found by the
+    new test.
+  - selfTest() at startup checks that every required element exists and that no id is duplicated;
+    a duplicate id is reported in the banner (this is the check that should have caught bug A).
+  - ?room= links are built from location.href instead of location.origin, so they also work when
+    the page is opened from a file or from a sub-path.
+
+  Tests:
+  - tools/selftest.mjs - a headless (jsdom) regression test that runs the real index.html with
+    stubbed WebRTC/microphone APIs. 46 checks: script boot, generated defaults, no duplicate ids,
+    room becomes visible after "Create room", offer text is produced and copyable, answer field
+    exists, rejoin, leave, theme, room link, ?room= pre-fill, denied microphone, full offer/answer
+    round trip between two participants, adding a third peer.
+  - The same test run against the old builds fails loudly (session-02 reports the ReferenceError,
+    session-01 reports the blank room) - it reproduces both bugs.
+
+  Docs:
+  - README.md: updated how-it-works, added a Troubleshooting section and a Tests section.
+
+Backups: backups/backup011/ (index.html + README.md of the broken build, taken before the fix).
+
+Deploy target: https://iumvo.github.io/ (GitHub Pages). Push index.html (and README.md).
+
+Notes for next session:
+- git and node were NOT installed in the container; I installed them (apk add git nodejs npm) to be
+  able to test and to commit. The commit for this session is local only - there is no SSH key or
+  token for github.com in the container, so the push still has to be done by the user:
+      cd /w && git add -A && git commit -m "..." && git push origin main
+- Still no TURN server - symmetric NAT may fail.
+- Mobile compatibility (Safari iOS, Chrome Android) was not tested on real devices.
+- node_modules/ (jsdom, for the test) is git-ignored; `npm test` re-runs the regression test.
+- All files chowned 1000:1000 and chmod 666 so they can be edited without sudo.
+
+Comment from the user (session 02, both items addressed):
+1) Default room name + default user name generation - restored (Kabanchik### / IUMIUMIUM, nickname
+   regenerated on every page load, "🎲 Another name" button added). They had not disappeared by
+   accident: the code was still in the file but never executed because of the ReferenceError.
+2) "Creating a room doesn't provide me with any text to share, and no controls are visible" -
+   fixed. Two independent causes, both found and both fixed (see ticket011.txt). The room now
+   always opens, the offer text is always there to copy, and a blocked microphone no longer
+   prevents it.

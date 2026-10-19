@@ -1,0 +1,12 @@
+{
+  "name": "ium-voice-room",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serverless push-to-talk voice room (static site) + headless regression tests",
+  "scripts": {
+    "test": "node tools/selftest.mjs index.html"
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0"
+  }
+}

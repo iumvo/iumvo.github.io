@@ -1,0 +1,3 @@
+node_modules/
+# the user's bug-report folder contains a real SDP with private network details - keep it local
+bugs/

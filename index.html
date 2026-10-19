@@ -16,10 +16,10 @@
   .row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
   .row > * { flex: 1; min-width: 120px; }
   label { font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.3px; }
-  input, textarea { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid #374151; background: #0b1021; color: #e2e8f0; font-size: 0.92rem; }
+  input, textarea { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid #374151; background: #0b1021; color: #e2e8f0; font-size: 0.92rem; font-family: inherit; }
   input:focus, textarea:focus { outline: 2px solid #3b82f6; border-color: transparent; }
   textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.78rem; resize: vertical; }
-  button { border: none; border-radius: 10px; padding: 10px 14px; font-size: 0.92rem; font-weight: 600; cursor: pointer; color: #fff; background: #3b82f6; touch-action: manipulation; }
+  button { border: none; border-radius: 10px; padding: 10px 14px; font-size: 0.92rem; font-weight: 600; cursor: pointer; color: #fff; background: #3b82f6; touch-action: manipulation; font-family: inherit; }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
   button.out { background: #374151; }
   button.go { background: #22c55e; }
@@ -28,6 +28,8 @@
   button.ptt { background: #ef4444; font-size: 1rem; padding: 15px 6px; width: 100%; }
   button.ptt.on { background: #16a34a; box-shadow: 0 0 0 7px rgba(22,163,74,0.25); }
   .hidden { display: none !important; }
+  .fatal { background: #7f1d1d; border: 1px solid #991b1b; color: #fecaca; border-radius: 10px; padding: 12px 14px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
+  body.light .fatal { background: #7f1d1d; color: #fecaca; border-color: #991b1b; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 8px 0 12px; }
   .tile { background: #0b1021; border: 2px solid #1f2937; border-radius: 12px; padding: 12px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 7px; }
   .tile.me { border-color: #3b82f6; background: #0d1730; }
@@ -51,7 +53,9 @@
   .copybtn:hover { background: #4b5563; border-color: #6b7280; }
   .copybtn:active { background: #6b7280; }
   .peer { background: #0b1021; border: 1px solid #1f2937; border-radius: 10px; padding: 10px; margin-bottom: 9px; }
-  .peer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+  .peer-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 7px; }
+  .peer-head strong { flex: 0 1 auto; }
+  .peer-head .badge { margin-right: auto; }
   .add-card { border-style: dashed; border-color: #374151; }
   .hint { font-size: 0.76rem; color: #94a3b8; margin-top: 7px; }
   .err { color: #f87171; font-size: 0.78rem; margin-top: 7px; min-height: 1.2em; }
@@ -86,6 +90,7 @@
     .sdpbox { flex-direction: column; align-items: stretch; }
     .sdpbox > label { width: auto !important; margin-bottom: 4px; }
     .sdpbox textarea { min-height: 100px; }
+    .copybtn { margin-top: 0; width: 100%; }
   }
   footer { margin-top: auto; padding: 18px 0 6px; color: #64748b; font-size: 0.72rem; text-align: center; border-top: 1px solid #1f2937; }
   footer a { color: #3b82f6; text-decoration: none; }
@@ -99,11 +104,18 @@
     <p class="tag">Serverless push-to-talk voice chat · max 4 people · no accounts · nothing to maintain</p>
   </header>
 
+  <!-- Shown only when the script dies unexpectedly, so the page is never silently blank -->
+  <div id="fatal" class="fatal hidden" role="alert"></div>
+
   <!-- Lobby -->
   <section class="card" id="lobby">
     <div class="row">
-      <div><label>Your name</label><input id="nick" placeholder="e.g. Alex"></div>
-      <div><label>Room name</label><input id="room" placeholder="e.g. lunch" value="main"></div>
+      <div>
+        <label>Your name</label>
+        <input id="nick" placeholder="e.g. Alex" value="Kabanchik000" autocomplete="off">
+        <button type="button" id="btnNewName" class="out sm" style="width:auto;margin-top:6px">🎲 Another name</button>
+      </div>
+      <div><label>Room name</label><input id="roomInput" placeholder="e.g. lunch" value="IUMIUMIUM" autocomplete="off"></div>
     </div>
     <button id="btnCreate" class="go">Create room</button>
     <div class="hint">No signaling server, so you exchange offer/answer text directly (copy &amp; paste).</div>
@@ -113,7 +125,7 @@
     <div class="row">
       <button id="btnJoin" class="out">Connect with their offer</button>
     </div>
-    <div class="err" id="lobbyErr"></div>
+    <div class="err" id="lobbyErr" hidden></div>
   </section>
 
   <!-- Room -->
@@ -133,7 +145,7 @@
       <button type="button" id="btnRejoin" class="out">Rejoin room</button>
     </div>
     <div class="grid" id="tiles"></div>
-    <div class="err" id="roomErr"></div>
+    <div class="err" id="roomErr" hidden></div>
 
     <div class="peer">
       <div class="peer-head"><strong>Signaling</strong> <span style="font-size:0.78rem;color:#94a3b8">exchange these with the other people</span></div>
@@ -151,6 +163,31 @@
 </div>
 <script>
 (() => {
+  'use strict';
+
+  // ==========================================================================
+  //  Helpers — NOTE: `$` MUST be defined before anything else uses it.
+  //  (An earlier version called `$()` before this declaration, which threw
+  //   "Cannot access '$' before initialization" and killed the whole script.)
+  // ==========================================================================
+  const $ = id => document.getElementById(id);
+
+  // Loud, visible failure instead of a silently blank page.
+  function fatal(msg) {
+    const el = $('fatal');
+    if (!el) { console.error('[IUM Voice Room] ' + msg); return; }
+    el.textContent = '⚠️ ' + msg;
+    el.classList.remove('hidden');
+    el.hidden = false;
+  }
+  window.addEventListener('error', (e) => {
+    fatal('Unexpected script error: ' + ((e && e.message) || 'unknown') + '. Please reload the page.');
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    const r = e.reason;
+    fatal('Unexpected error: ' + ((r && r.message) || r || 'unknown') + '. Please reload the page.');
+  });
+
   const MAX_PEERS = 3;
   const STUN_SERVERS = [
     { urls: 'stun:stun.l.google.com:19302' },
@@ -163,51 +200,86 @@
   let myId = null;
   let myName = 'You';
   let roomName = 'main';
-  let peers = new Map(); // id -> {id,name,role,pc,status,mySdp,audioEl}
+  let peers = new Map(); // id -> {id,name,role,pc,status,mySdp,remoteSdp,audioEl}
   let allMuted = false;
   let latencyTimer = null;
   let darkMode = true;
-  const savedTheme = localStorage.getItem('iumi-theme');
+  let addCard = null;
+
+  function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  // ---------- theme ----------
+  function applyTheme() {
+    document.body.classList.toggle('light', !darkMode);
+    const b = $('btnTheme');
+    if (b) b.textContent = darkMode ? '☀️ Light mode' : '🌙 Dark mode';
+  }
+  const savedTheme = storeGet('iumi-theme');
   if (savedTheme === 'light') darkMode = false;
-  if (!darkMode) document.body.classList.add('light');
-  const $btnTheme = $('btnTheme');
-  if ($btnTheme) $btnTheme.textContent = darkMode ? '☀️ Light mode' : '🌙 Dark mode';
+  else if (savedTheme === 'dark') darkMode = true;
+  applyTheme();
 
-  const $ = id => document.getElementById(id);
+  function toggleTheme() {
+    darkMode = !darkMode;
+    applyTheme();
+    storeSet('iumi-theme', darkMode ? 'dark' : 'light');
+  }
 
-  // Default values (set once on load)
-  $('nick').value = 'Kabanchik' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-  $('room').value = 'IUMIUMIUM';
+  // ---------- default name + room (restored) ----------
+  function randomNick() {
+    return 'Kabanchik' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+  }
+  const DEFAULT_ROOM = 'IUMIUMIUM';
+
+  function applyDefaults(force) {
+    const nick = $('nick');
+    const roomIn = $('roomInput');
+    if (nick && (force || !nick.value.trim())) nick.value = randomNick();
+    if (roomIn && (force || !roomIn.value.trim())) roomIn.value = DEFAULT_ROOM;
+  }
 
   // ---------- URL-based room sharing ----------
-  // ?room=NAME pre-fills the room so friends can open the same room.
-  const urlParams = new URLSearchParams(location.search);
-  const urlRoom = urlParams.get('room');
-  if (urlRoom) $('room').value = urlRoom;
-
   function roomUrl() {
-    const u = new URL(location.origin + location.pathname);
-    u.searchParams.set('room', $('room').value);
-    return u.toString();
+    const base = location.href.split('#')[0].split('?')[0];
+    return base + '?room=' + encodeURIComponent(($('roomInput') || {}).value.trim() || DEFAULT_ROOM);
   }
-  function updateRoomLink() { $('roomLink').value = roomUrl(); }
-
-  updateRoomLink();
-  $('room').addEventListener('input', () => {
-    history.replaceState(null, '', roomUrl());
-    updateRoomLink();
-  });
-
-  $('btnCopyLink').onclick = () => {
-    const ta = $('roomLink');
-    ta.select();
+  function updateRoomLink() {
+    const el = $('roomLink');
+    if (el) el.value = roomUrl();
+  }
+  function syncUrl() {
     try {
-      navigator.clipboard.writeText(ta.value);
-      const old = $('btnCopyLink').textContent;
-      $('btnCopyLink').textContent = 'Copied!';
-      setTimeout(() => { if ($('btnCopyLink')) $('btnCopyLink').textContent = old; }, 1200);
-    } catch (e) {}
-  };
+      history.replaceState(null, '', '?room=' + encodeURIComponent($('roomInput').value.trim() || DEFAULT_ROOM));
+    } catch (e) { /* file:// or sandboxed — the link box still works */ }
+  }
+
+  // ---------- clipboard ----------
+  function copyText(text) {
+    const done = () => {};
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    ta.remove();
+  }
+  function flash(btn, msg) {
+    if (!btn) return;
+    const old = btn.textContent;
+    btn.textContent = msg;
+    setTimeout(() => { if (btn.isConnected) btn.textContent = old; }, 1200);
+  }
 
   // ---------- errors ----------
   function showErr(id, msg) {
@@ -221,24 +293,33 @@
 
   // ---------- microphone / push-to-talk ----------
   async function initMic() {
-    if (localStream) return;
+    if (localTrack) return localTrack;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('This browser cannot reach the microphone. Microphone access needs a secure page — open the site over HTTPS (or http://localhost).');
+    }
+    let stream;
     try {
-      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      localTrack = localStream.getAudioTracks()[0];
-      localTrack.enabled = false; // start muted
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
+      const name = err && err.name;
       let hint = 'Check your microphone and reload the page.';
-      if (err.name === 'NotAllowedError') {
+      if (name === 'NotAllowedError') {
         hint = 'Microphone access was denied. Click the lock icon (🔒) in the address bar, allow microphone access, then reload this page.';
-      } else if (err.name === 'NotFoundError') {
+      } else if (name === 'NotFoundError') {
         hint = 'No microphone was found on this device. Plug in a microphone or headset and reload.';
-      } else if (err.name === 'NotReadableError') {
+      } else if (name === 'NotReadableError') {
         hint = 'The microphone could not be read — it may be in use by another app. Close other apps using the mic and reload.';
-      } else if (err.name === 'TypeError') {
+      } else if (name === 'TypeError') {
         hint = 'The browser could not access audio input. Try reloading on a secure page (HTTPS).';
+      } else if (name === 'SecurityError') {
+        hint = 'The browser blocked microphone access for security reasons. Use an HTTPS address.';
       }
       throw new Error('Microphone access failed — ' + hint);
     }
+    localStream = stream;
+    localTrack = stream.getAudioTracks()[0] || null;
+    if (localTrack) localTrack.enabled = false; // start muted
+    return localTrack;
   }
 
   function setMic(on) {
@@ -298,7 +379,11 @@
 
   function newPC(p) {
     const pc = new RTCPeerConnection({ iceServers: STUN_SERVERS });
-    pc.addTrack(localTrack, localStream);
+    // Only add the local track if the microphone is available; the connection
+    // (and the shareable offer text) must work even without a mic.
+    if (localTrack && localStream) {
+      try { pc.addTrack(localTrack, localStream); } catch (e) {}
+    }
     p.pc = pc;
     pc.ontrack = (e) => {
       const track = e.track || (e.streams[0] && e.streams[0].getTracks()[0]);
@@ -318,7 +403,7 @@
   // You initiate the connection: create an offer to send to someone
   async function makeOffer(id, name) {
     if (!id) id = genId();
-    const p = { id, name, role: 'offerer', pc: null, status: 'connecting', mySdp: null, audioEl: null };
+    const p = { id, name, role: 'offerer', pc: null, status: 'connecting', mySdp: null, remoteSdp: null, audioEl: null };
     peers.set(id, p);
     renderPeer(p);
     const pc = newPC(p);
@@ -340,9 +425,8 @@
   // Someone offered to you: create an answer to send back
   async function makeAnswer(id, name, offerSdp) {
     if (!id) id = genId();
-    const p = { id, name, role: 'answerer', pc: null, status: 'connecting', mySdp: null, audioEl: null };
+    const p = { id, name, role: 'answerer', pc: null, status: 'connecting', mySdp: null, remoteSdp: offerSdp, audioEl: null };
     peers.set(id, p);
-    p.remoteSdp = offerSdp; // keep the offer so a retry can re-use it
     renderPeer(p);
     const pc = newPC(p);
     try {
@@ -365,6 +449,7 @@
   async function applyAnswer(id, answerSdp) {
     const p = peers.get(id);
     if (!p) throw new Error('unknown peer');
+    if (!p.pc) throw new Error('connection is gone — click Retry');
     await p.pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
     p.status = 'connected';
     renderPeer(p);
@@ -424,7 +509,6 @@
       await initMic(); // no re-prompt if microphone was already permitted
     } catch (e) {
       showErr('roomErr', 'Microphone access failed: ' + e.message);
-      return;
     }
     for (const [, p] of peers) { try { p.pc.close(); } catch (e) {} }
     peers.clear();
@@ -436,17 +520,10 @@
       if (peers.size < MAX_PEERS) {
         await makeOffer(null, 'Person 2');
       }
+      render();
     } catch (e) {
       showErr('roomErr', 'Failed to create offer: ' + e.message);
     }
-  }
-
-  function toggleTheme() {
-    darkMode = !darkMode;
-    document.body.classList.toggle('light', !darkMode);
-    localStorage.setItem('iumi-theme', darkMode ? 'dark' : 'light');
-    const btn = $('btnTheme');
-    if (btn) btn.textContent = darkMode ? '☀️ Light mode' : '🌙 Dark mode';
   }
 
   // Latency / connection quality indicator via WebRTC stats (RTT of the selected candidate pair).
@@ -459,7 +536,7 @@
         const stats = await pc.getStats();
         for (const [, s] of stats) {
           if (s.type !== 'candidate-pair' || s.state !== 'selected') continue;
-          const rttSec = s.currentRoundTripTime ?? s.googRtt;
+          const rttSec = s.currentRoundTripTime != null ? s.currentRoundTripTime : s.googRtt;
           if (rttSec == null) continue;
           const rttMs = Math.round(rttSec * 1000);
           if (maxRttMs === null || rttMs > maxRttMs) maxRttMs = rttMs;
@@ -468,12 +545,12 @@
     }
     const el = $('latency');
     if (!el) return;
-    if (maxRttMs == null) { el.hidden = true; return; }
+    if (maxRttMs === null) { el.hidden = true; return; }
     let quality = 'Good';
     let color = '#22c55e';
     if (maxRttMs > 300) { quality = 'Poor'; color = '#ef4444'; }
     else if (maxRttMs > 150) { quality = 'Fair'; color = '#eab308'; }
-    el.textContent = `↻ ${maxRttMs}ms · ${quality}`;
+    el.textContent = '↻ ' + maxRttMs + 'ms · ' + quality;
     el.style.color = color;
     el.hidden = false;
   }
@@ -485,15 +562,11 @@
     const el = document.getElementById('tile-' + id);
     if (el) el.remove();
     peers.delete(id);
-    renderTiles();
-    renderPeersPanel();
+    render();
   }
 
   // ---------- rendering ----------
   function initials(n) { return String(n || '?').slice(0, 2).toUpperCase(); }
-  function escapeHtml(t) {
-    return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
   function statusLabel(s) {
     if (s === 'connected') return 'Connected';
     if (s === 'waiting-answer') return 'Waiting for their answer';
@@ -506,6 +579,7 @@
 
   function renderTiles() {
     const grid = $('tiles');
+    if (!grid) return;
     grid.innerHTML = '';
     const self = document.createElement('div');
     self.id = 'tile-me';
@@ -516,7 +590,8 @@
     selfAudio.playsInline = true;
     selfAudio.muted = true;
     if (localStream) selfAudio.srcObject = localStream;
-    self.innerHTML = `<div class="avatar">${initials(myName)}</div><div class="name">${escapeHtml(myName)}</div><div class="badge">${localTrack && localTrack.enabled ? 'talking' : 'muted'}</div>`;
+    self.innerHTML = '<div class="avatar">' + initials(myName) + '</div><div class="name"></div><div class="badge">' + (localTrack && localTrack.enabled ? 'talking' : 'muted') + '</div>';
+    self.querySelector('.name').textContent = myName;
     self.appendChild(selfAudio);
     grid.appendChild(self);
 
@@ -525,66 +600,105 @@
       t.id = 'tile-' + id;
       t.className = 'tile ' + (p.status === 'connected' ? 'live' : 'waiting');
       const audio = p.audioEl || document.createElement('audio');
-      t.innerHTML = `<div class="avatar">${initials(p.name)}</div><div class="name">${escapeHtml(p.name)}</div><div class="badge ${p.status === 'connected' ? 'connected' : ''}">${statusLabel(p.status)}</div>`;
+      t.innerHTML = '<div class="avatar">' + initials(p.name) + '</div><div class="name"></div><div class="badge' + (p.status === 'connected' ? ' connected' : '') + '">' + statusLabel(p.status) + '</div>';
+      t.querySelector('.name').textContent = p.name;
       t.appendChild(audio);
       grid.appendChild(t);
     }
   }
 
-  function sdpRow(labelText, value, readonly, kind) {
-    const wrap = document.createElement('div');
-    wrap.className = 'sdpbox';
-    const lab = document.createElement('label');
-    lab.textContent = labelText;
-    lab.style.width = '150px';
-    lab.style.flex = '0 0 auto';
-    const ta = document.createElement('textarea');
-    ta.readOnly = readonly;
-    ta.value = value || '';
-    ta.spellcheck = false;
-    wrap.appendChild(lab);
-    wrap.appendChild(ta);
-    if (!readonly) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'go sm';
-      btn.textContent = 'Apply';
-      btn.style = 'width:auto;padding:0 10px;margin-left:8px';
-      wrap.appendChild(btn);
-    } else {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'copybtn';
-      btn.textContent = kind === 'offer' ? 'Copy offer' : 'Copy answer';
-      btn.onclick = () => {
-        ta.select();
-        try { navigator.clipboard.writeText(ta.value); } catch (e) {}
-      };
-      wrap.appendChild(btn);
-    }
-    return wrap;
-  }
-
-  function renderPeer(p) {
-    // update existing card or create
-    let card = document.querySelector('.peer-card[data-id="' + p.id + '"]');
+  // ---- peer cards (updated in place so typed text is never wiped) ----
+  function peerCard(p) {
+    const box = $('peersContainer');
+    if (!box) return null;
+    let card = box.querySelector('.peer-card[data-id="' + p.id + '"]');
     if (!card) {
       card = document.createElement('div');
       card.className = 'peer peer-card';
       card.dataset.id = p.id;
-      $('peersContainer').appendChild(card);
+      if (addCard) box.insertBefore(card, addCard);
+      else box.appendChild(card);
     }
+    return card;
+  }
+
+  function ensureRow(card, cls) {
+    let row = card.querySelector('.' + cls);
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'sdpbox ' + cls;
+      card.appendChild(row);
+    }
+    return row;
+  }
+
+  function dropRow(card, cls) {
+    const row = card.querySelector('.' + cls);
+    if (row) row.remove();
+  }
+
+  // Read-only SDP row with a big copy button.
+  function fillOutRow(row, labelText, value, copyLabel) {
+    if (!row._built) {
+      row.innerHTML = '';
+      const lab = document.createElement('label');
+      const ta = document.createElement('textarea');
+      ta.readOnly = true;
+      ta.spellcheck = false;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copybtn';
+      btn.textContent = copyLabel;
+      btn.onclick = () => { ta.select(); copyText(ta.value); flash(btn, 'Copied!'); };
+      row.append(lab, ta, btn);
+      row._built = true;
+      row._lab = lab; row._ta = ta;
+    }
+    row._lab.textContent = labelText;
+    if (row._ta.value !== (value || '')) row._ta.value = value || '';
+    row._ta.setAttribute('aria-label', labelText);
+  }
+
+  // Editable SDP row (paste their answer here). The element is reused so the
+  // text the user pasted is never thrown away by a re-render.
+  function fillInRow(row, labelText, onApply) {
+    if (!row._built) {
+      row.innerHTML = '';
+      const lab = document.createElement('label');
+      const ta = document.createElement('textarea');
+      ta.spellcheck = false;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'go sm';
+      btn.style.cssText = 'width:auto;padding:0 10px;margin-left:8px';
+      btn.textContent = 'Apply';
+      btn.onclick = () => onApply(ta.value);
+      row.append(lab, ta, btn);
+      row._built = true;
+      row._lab = lab; row._ta = ta;
+    }
+    row._lab.textContent = labelText;
+  }
+
+  function renderPeer(p) {
+    const card = peerCard(p);
+    if (!card) return;
     card.dataset.status = p.status;
 
-    const head = document.createElement('div');
-    head.className = 'peer-head';
-    head.innerHTML = `<strong>${escapeHtml(p.name)}</strong> <span class="badge ${p.status === 'connected' ? 'connected' : ''}">${statusLabel(p.status)}</span>`;
-    const drop = document.createElement('button');
-    drop.type = 'button';
-    drop.className = 'danger sm';
-    drop.textContent = 'Remove';
-    drop.onclick = () => dropPeer(p.id);
-    head.appendChild(drop);
+    // --- head (name / status / buttons) ---
+    let head = card.querySelector('.peer-head');
+    if (!head) {
+      head = document.createElement('div');
+      head.className = 'peer-head';
+      card.insertBefore(head, card.firstChild);
+    }
+    head.innerHTML = '';
+    const strong = document.createElement('strong');
+    strong.textContent = p.name;
+    const badge = document.createElement('span');
+    badge.className = 'badge' + (p.status === 'connected' ? ' connected' : '');
+    badge.textContent = statusLabel(p.status);
+    head.append(strong, badge);
     if (p.status === 'failed') {
       const retry = document.createElement('button');
       retry.type = 'button';
@@ -593,110 +707,154 @@
       retry.onclick = () => refreshPeer(p.id);
       head.appendChild(retry);
     }
-    card.innerHTML = '';
-    card.appendChild(head);
+    const drop = document.createElement('button');
+    drop.type = 'button';
+    drop.className = 'danger sm';
+    drop.textContent = 'Remove';
+    drop.onclick = () => dropPeer(p.id);
+    head.appendChild(drop);
 
-    if (p.role === 'offerer' && p.status === 'waiting-answer') {
-      card.appendChild(sdpRow(`Your offer → send to ${escapeHtml(p.name)}:`, p.mySdp, true, 'offer'));
-      const ansWrap = document.createElement('div');
-      ansWrap.className = 'sdpbox';
-      const lab = document.createElement('label');
-      lab.textContent = `Paste ${escapeHtml(p.name)}'s answer:`;
-      lab.style.width = '150px';
-      lab.style.flex = '0 0 auto';
-      const ta = document.createElement('textarea');
-      ta.className = 'ans-' + p.id;
-      ta.spellcheck = false;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'go sm';
-      btn.textContent = 'Apply';
-      btn.style = 'width:auto;padding:0 10px;margin-left:8px';
-      btn.onclick = async () => {
+    // --- SDP rows ---
+    const isOfferer = p.role === 'offerer';
+    const showOut = !!p.mySdp && p.status !== 'failed';
+    const showIn = isOfferer && p.status === 'waiting-answer';
+
+    if (!showOut) dropRow(card, 'row-out');
+    if (!showIn) dropRow(card, 'row-in');
+
+    if (showOut) {
+      const row = ensureRow(card, 'row-out');
+      if (isOfferer) {
+        fillOutRow(row, 'Your offer → send to ' + p.name + ':', p.mySdp, 'Copy offer');
+      } else {
+        fillOutRow(row, 'Your answer → send to ' + p.name + ':', p.mySdp, 'Copy answer');
+      }
+    }
+    if (showIn) {
+      const row = ensureRow(card, 'row-in');
+      fillInRow(row, "Paste " + p.name + "'s answer:", async (val) => {
+        if (!val.trim()) { showErr('roomErr', 'Paste their answer first'); return; }
         try {
-          await applyAnswer(p.id, ta.value);
+          await applyAnswer(p.id, val);
           render();
         } catch (e) {
           showErr('roomErr', 'Failed to apply answer: ' + e.message);
         }
-      };
-      ansWrap.append(lab, ta, btn);
-      card.appendChild(ansWrap);
+      });
     }
-    if (p.role === 'answerer' && p.status === 'waiting-them') {
-      card.appendChild(sdpRow(`Your answer → send to ${escapeHtml(p.name)}:`, p.mySdp, true, 'answer'));
-    }
+  }
+
+  // The "+ Add a person" card is created once and kept, so the text the user
+  // typed into it is never lost.
+  function ensureAddCard() {
+    const box = $('peersContainer');
+    if (!box) return null;
+    if (addCard && addCard.isConnected) return addCard;
+    addCard = document.createElement('div');
+    addCard.className = 'peer add-card';
+    addCard.innerHTML =
+      '<div class="peer-head"><strong>+ Add a person</strong></div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:7px"><input id="npName" placeholder="Their name" style="flex:1"></div>' +
+      '<div class="sdpbox" style="margin-bottom:7px"><label style="width:150px">Paste their offer:</label><textarea id="npOffer"></textarea></div>' +
+      '<button type="button" id="npConnect" class="go" style="width:auto">Connect</button>' +
+      '<button type="button" id="npMakeOffer" class="out" style="width:auto;margin-left:7px">Make an offer to share</button>' +
+      '<div id="npAnswerBox" style="margin-top:7px"></div>';
+
+    box.appendChild(addCard);
+
+    $('npConnect').onclick = async () => {
+      const name = ($('npName').value || '').trim() || 'Peer';
+      const offer = ($('npOffer').value || '').trim();
+      if (!offer) { showErr('roomErr', 'Paste an offer first'); return; }
+      clearErr('roomErr');
+      try {
+        await makeAnswer(null, name, offer);
+        render();
+      } catch (e) {
+        showErr('roomErr', 'Failed to connect: ' + e.message);
+      }
+    };
+
+    $('npMakeOffer').onclick = async () => {
+      if (peers.size >= MAX_PEERS) { showErr('roomErr', 'Room is full (4 people max).'); return; }
+      try {
+        await makeOffer(null, 'New person');
+        render();
+      } catch (e) {
+        showErr('roomErr', 'Failed to make offer: ' + e.message);
+      }
+    };
+    return addCard;
   }
 
   function renderPeersPanel() {
     const box = $('peersContainer');
-    // keep existing peer cards; only rebuild the add-person card
-    const existing = box.querySelectorAll('.peer-card');
-    existing.forEach(el => el.remove());
+    if (!box) return;
+    ensureAddCard();
 
+    // drop cards of peers that are gone
+    box.querySelectorAll('.peer-card').forEach(el => {
+      if (!peers.has(el.dataset.id)) el.remove();
+    });
+
+    for (const [, p] of peers) renderPeer(p);
+
+    // hint when there is nobody yet
+    let hint = box.querySelector('.peers-hint');
     if (peers.size === 0) {
-      box.insertAdjacentHTML('beforeend', '<div class="hint">No connections yet. Either "Make an offer to share" and send it to someone, or paste someone\'s offer above and click Connect.</div>');
+      if (!hint) {
+        hint = document.createElement('div');
+        hint.className = 'hint peers-hint';
+        if (addCard) box.insertBefore(hint, addCard);
+        else box.appendChild(hint);
+      }
+      hint.textContent = 'No connections yet. Either "Make an offer to share" and send it to someone, or paste someone\'s offer above and click Connect.';
+    } else if (hint) {
+      hint.remove();
     }
-    for (const [id, p] of peers) renderPeer(p);
 
-    if (peers.size < MAX_PEERS) {
-      const card = document.createElement('div');
-      card.className = 'peer add-card';
-      card.innerHTML = `
-        <div class="peer-head"><strong>+ Add a person</strong></div>
-        <div style="display:flex;gap:8px;margin-bottom:7px"><input id="npName" placeholder="Their name" style="flex:1"></div>
-        <div class="sdpbox" style="margin-bottom:7px"><label style="width:150px">Paste their offer:</label><textarea id="npOffer"></textarea></div>
-        <button type="button" id="npConnect" class="go" style="width:auto">Connect</button>
-        <button type="button" id="npMakeOffer" class="out" style="width:auto;margin-left:7px">Make an offer to share</button>
-        <div id="npAnswerBox" style="margin-top:7px"></div>
-      `;
-      box.appendChild(card);
+    // the add-card disappears when the room is full
+    if (addCard) addCard.classList.toggle('hidden', peers.size >= MAX_PEERS);
 
-      $('npConnect').onclick = async () => {
-        const name = $('npName').value.trim() || 'Peer';
-        const offer = $('npOffer').value.trim();
-        if (!offer) { showErr('roomErr', 'Paste an offer first'); return; }
-        clearErr('roomErr');
-        try {
-          await makeAnswer(null, name, offer);
-          render();
-        } catch (e) {
-          showErr('roomErr', 'Failed to connect: ' + e.message);
-        }
-      };
-
-      $('npMakeOffer').onclick = async () => {
-        if (peers.size >= MAX_PEERS) return;
-        try {
-          await makeOffer(null, 'New person');
-          render();
-        } catch (e) {
-          showErr('roomErr', 'Failed to make offer: ' + e.message);
-        }
-      };
-    } else {
-      box.insertAdjacentHTML('beforeend', '<div class="full">Room is full (4 people max).</div>');
+    let full = box.querySelector('.peers-full');
+    if (peers.size >= MAX_PEERS) {
+      if (!full) {
+        full = document.createElement('div');
+        full.className = 'full peers-full';
+        box.appendChild(full);
+      }
+      full.textContent = 'Room is full (4 people max).';
+    } else if (full) {
+      full.remove();
     }
   }
 
   function render() {
     const full = peers.size >= MAX_PEERS;
     const roomFull = $('roomFull');
-    if (roomFull) roomFull.hidden = !full;
+    if (roomFull) {
+      roomFull.hidden = !full;
+      roomFull.classList.toggle('hidden', !full);
+    }
     renderTiles();
     renderPeersPanel();
     renderMic();
-    if ($('roomName')) $('roomName').textContent = escapeHtml(roomName);
-    if ($('meName')) $('meName').textContent = escapeHtml(myName);
+    const rn = $('roomName');
+    if (rn) rn.textContent = roomName;
+    const mn = $('meName');
+    if (mn) mn.textContent = myName;
   }
 
   // ---------- lobby / room flow ----------
   function enterRoom() {
-    $('lobby').classList.add('hidden');
-    $('room').classList.remove('hidden');
+    const lobby = $('lobby');
+    const room = $('room');
+    if (lobby) lobby.classList.add('hidden');
+    if (room) room.classList.remove('hidden');
     clearErr('lobbyErr');
     clearErr('roomErr');
     render();
+    if (latencyTimer) clearInterval(latencyTimer);
     latencyTimer = setInterval(updateLatency, 1000);
     updateLatency();
   }
@@ -710,48 +868,84 @@
     }
     peers.clear();
     allMuted = false;
+    const mb = $('btnMuteAll');
+    if (mb) mb.textContent = 'Mute all';
     if (localTrack) localTrack.enabled = false;
     renderMic();
-    $('room').classList.add('hidden');
-    $('lobby').classList.remove('hidden');
+    const room = $('room');
+    const lobby = $('lobby');
+    if (room) room.classList.add('hidden');
+    if (lobby) lobby.classList.remove('hidden');
     clearErr('roomErr');
     render();
   }
 
   async function handleCreate() {
     clearErr('lobbyErr');
-    myName = $('nick').value.trim() || 'You';
-    roomName = $('room').value.trim() || 'main';
+    myName = ($('nick').value || '').trim() || 'You';
+    roomName = ($('roomInput').value || '').trim() || DEFAULT_ROOM;
     myId = genId();
+
+    // The room opens immediately — the controls must never stay invisible.
+    enterRoom();
+
+    // The microphone is a nice-to-have: a missing mic must not block the
+    // offer text, so a failure is reported but does not stop the flow.
+    let micError = null;
+    try { await initMic(); } catch (e) { micError = e.message; }
+
     try {
-      await initMic();
-      enterRoom();
-      // Automatically create an offer to share so text appears immediately
       if (peers.size < MAX_PEERS) {
-        try {
-          await makeOffer(null, 'Person 2');
-        } catch (e) {
-          showErr('roomErr', 'Failed to create offer: ' + e.message);
-        }
+        await makeOffer(null, 'Person 2');
+      } else {
+        showErr('roomErr', 'Room is full (4 people max).');
       }
     } catch (e) {
-      showErr('lobbyErr', e.message);
+      showErr('roomErr', 'Failed to create offer: ' + e.message);
     }
+    render();
+    if (micError) showErr('roomErr', micError);
   }
 
   async function handleJoin() {
     clearErr('lobbyErr');
-    myName = $('nick').value.trim() || 'You';
-    roomName = $('room').value.trim() || 'main';
-    myId = genId();
-    const offer = $('joinOffer').value.trim();
+    const offer = ($('joinOffer').value || '').trim();
     if (!offer) { showErr('lobbyErr', 'Paste an offer first'); return; }
+    myName = ($('nick').value || '').trim() || 'You';
+    roomName = ($('roomInput').value || '').trim() || DEFAULT_ROOM;
+    myId = genId();
+
+    let micError = null;
+    try { await initMic(); } catch (e) { micError = e.message; }
+
     try {
-      await initMic();
       await makeAnswer(null, myName, offer);
-      enterRoom();
     } catch (e) {
       showErr('lobbyErr', 'Failed to join: ' + e.message);
+      return; // stay in the lobby
+    }
+    enterRoom();
+    if (micError) showErr('roomErr', micError);
+  }
+
+  // ---------- startup ----------
+  function selfTest() {
+    const seen = new Set();
+    const dupes = [];
+    document.querySelectorAll('[id]').forEach(el => {
+      if (seen.has(el.id)) dupes.push(el.id);
+      else seen.add(el.id);
+    });
+    const required = ['lobby', 'room', 'nick', 'roomInput', 'btnCreate', 'btnJoin', 'btnLeave',
+      'btnPTT', 'btnMuteAll', 'btnRejoin', 'btnTheme', 'btnNewName', 'roomLink', 'btnCopyLink',
+      'joinOffer', 'lobbyErr', 'roomErr', 'roomName', 'meName', 'micLabel', 'micDot', 'tiles',
+      'peersContainer', 'roomFull', 'latency', 'npName', 'npOffer', 'npConnect', 'npMakeOffer'];
+    const missing = required.filter(id => !seen.has(id));
+    if (dupes.length) {
+      fatal('Duplicate element id(s): ' + dupes.join(', ') + '. Please report this.');
+    }
+    if (missing.length) {
+      fatal('Missing element(s): ' + missing.join(', ') + '. Please reload the page.');
     }
   }
 
@@ -762,12 +956,36 @@
   $('btnMuteAll').onclick = toggleMuteAll;
   $('btnRejoin').onclick = rejoinRoom;
   $('btnTheme').onclick = toggleTheme;
+  $('btnNewName').onclick = () => { $('nick').value = randomNick(); };
+
+  $('btnCopyLink').onclick = () => {
+    const ta = $('roomLink');
+    if (!ta) return;
+    ta.select();
+    copyText(ta.value);
+    flash($('btnCopyLink'), 'Copied!');
+  };
+
+  // Defaults: a nickname is always generated, the room name is pre-filled.
+  applyDefaults(true);
+  // A ?room=NAME link wins over the default room name.
+  const urlRoom = new URLSearchParams(location.search).get('room');
+  if (urlRoom) $('roomInput').value = urlRoom;
+  updateRoomLink();
+  syncUrl();
+
+  $('roomInput').addEventListener('input', () => {
+    syncUrl();
+    updateRoomLink();
+  });
 
   const ptt = $('btnPTT');
-  ptt.addEventListener('pointerdown', startPTT);
-  ptt.addEventListener('pointerup', stopPTT);
-  ptt.addEventListener('pointercancel', stopPTT);
-  ptt.addEventListener('pointerleave', stopPTT);
+  if (ptt) {
+    ptt.addEventListener('pointerdown', startPTT);
+    ptt.addEventListener('pointerup', stopPTT);
+    ptt.addEventListener('pointercancel', stopPTT);
+    ptt.addEventListener('pointerleave', stopPTT);
+  }
 
   // Spacebar push-to-talk (ignore when typing in inputs)
   window.addEventListener('keydown', (e) => {
@@ -781,7 +999,10 @@
     if (e.code === 'Space') stopPTT();
   });
 
+  ensureAddCard();
+  selfTest();
   renderMic();
+  render();
 })();
 </script>
 </body>

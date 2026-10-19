@@ -15,12 +15,14 @@ Your browser creates a peer-to-peer WebRTC connection directly to each other per
 
 Because there is no signaling server, you and the other people exchange **offer/answer text directly** (copy & paste):
 
-1.  One person clicks **Create room**.
-2.  They click **Make an offer to share** and send that blob of text to a friend (any way: chat, email, in person).
+1.  One person clicks **Create room**. The room opens and an offer is generated right away — it is shown under **Your offer → send to Person 2** with a big **Copy offer** button.
+2.  They send that blob of text to a friend (any way: chat, email, in person).
 3.  The friend pastes it under **Paste their offer**, enters a name, clicks **Connect**, and sends the **Your answer → send to them** blob back.
 4.  The creator pastes that answer under **Paste their answer** and clicks **Apply**.
 5.  Repeat until everyone is connected (max 4 total). Then hold **Hold to speak** (or the **Space bar**) to talk; release to mute.
 6.  (Optional) Copy the **Room link** in the lobby and send it to friends so they open the same room name — you still exchange offer/answer text to connect.
+
+The **your name** field is filled in for you (a generated `Kabanchik###` nickname) and the **room name** defaults to `IUMIUMIUM`; edit either one, or press **🎲 Another name** for a new nickname.
 
 ## Deploy
 
@@ -53,6 +55,13 @@ Because there is no signaling server, you and the other people exchange **offer/
 *   **Latency** — while connected, the header shows round-trip time and quality (Good / Fair / Poor).
 *   **Dark mode** — toggle dark/light mode in the header; your choice is remembered.
 
+## Troubleshooting
+
+*   **The page is blank / nothing happens when you press "Create room"** — this was a bug in the build of 2026-10-19 and is fixed. The room now always opens and always shows the offer text, even if the microphone is blocked. If you still see a blank page, hard-reload (Ctrl/Cmd + Shift + R) to bypass the browser cache, and check the red banner at the top of the page — it reports any script error instead of failing silently.
+*   **"Microphone access failed"** — the browser blocked the mic. Click the lock icon (🔒) in the address bar, allow microphone access, and reload. On a phone, also close other apps that might be holding the mic.
+*   **"Room is full (4 people max)"** — three other people are already connected. Remove someone with **Remove** to free a slot.
+*   **The other side never connects** — you are probably behind a restrictive (symmetric) NAT. See *Caveats* below.
+
 ## Caveats
 
 *   **No TURN server.** If two people are behind restrictive/symmetric NATs, the direct connection may fail. For most home/office networks the public STUN servers are enough. If a connection fails, try a different network.
@@ -64,3 +73,20 @@ Because there is no signaling server, you and the other people exchange **offer/
 
 *   `index.html` — the entire app (HTML, CSS, JS).
 *   `README.md` — this file.
+*   `tools/selftest.mjs` — headless regression test (see below).
+
+## Tests
+
+The app is a single static file, but it is still covered by an automated test that runs the real
+`index.html` in a DOM with stubbed WebRTC/microphone APIs:
+
+```sh
+npm install        # once — only needed for the test
+npm test           # runs tools/selftest.mjs against index.html
+```
+
+It covers the flows that broke before: the room must become visible after **Create room**, a
+shareable offer must be produced, a denied microphone must not block the room, the offer/answer
+round trip between two participants must complete, the default name/room must be generated, and
+**no DOM id may be duplicated** (a duplicate `id="room"` is exactly what made the room invisible
+in the 2026-10-19 build).
