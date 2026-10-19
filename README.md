@@ -20,6 +20,7 @@ Because there is no signaling server, you and the other people exchange **offer/
 3.  The friend pastes it under **Paste their offer**, enters a name, clicks **Connect**, and sends the **Your answer → send to them** blob back.
 4.  The creator pastes that answer under **Paste their answer** and clicks **Apply**.
 5.  Repeat until everyone is connected (max 4 total). Then hold **Hold to speak** (or the **Space bar**) to talk; release to mute.
+6.  (Optional) Copy the **Room link** in the lobby and send it to friends so they open the same room name — you still exchange offer/answer text to connect.
 
 ## Deploy
 
@@ -45,6 +46,12 @@ Because there is no signaling server, you and the other people exchange **offer/
 *   **Mic starts muted** — nobody hears you until you push-to-talk.
 *   **Up to 3 other people** (4 total). Each person needs their own offer/answer exchange with everyone else they want to hear.
 *   **Leave** — click Leave room to close all connections.
+*   **Room link** — copy the link in the lobby and send it to friends so they open the same room name (offer/answer text is still exchanged to connect).
+*   **Retry** — if a connection to someone fails, click **Retry** on their card to refresh the offer/answer without reloading the page.
+*   **Mute all** — mute your mic and everyone's remote audio at once; click again to restore remote audio.
+*   **Rejoin room** — leave and re-enter the room with the same name, creating a fresh offer.
+*   **Latency** — while connected, the header shows round-trip time and quality (Good / Fair / Poor).
+*   **Dark mode** — toggle dark/light mode in the header; your choice is remembered.
 
 ## Caveats
 

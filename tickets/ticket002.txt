@@ -1,0 +1,21 @@
+TICKET-002
+Status: done
+
+Problem:
+- When 4 peers are reached, the "room full" notice is only a small line inside the peers panel and easy to miss; users can still try to add more people.
+
+Requested changes:
+- Show a prominent visual "room full" indicator/banner when 4 people are in the room.
+- Visually disable adding more connections once full.
+
+Plan:
+- Backup current project to backups/backup002/ (index.html + README.md).
+- Add a room-full banner in the room section, shown/hidden in render() based on peer count.
+- Disable the "Make an offer to share" button when full.
+- Update ticket status to done.
+
+Summary:
+- Added a prominent red "Room is full (4 people max)" banner in the room section, shown/hidden in render() based on peer count.
+- Existing "Make an offer to share" already bails out when full; banner makes the limit obvious.
+- Backup saved to backups/backup002/.
+

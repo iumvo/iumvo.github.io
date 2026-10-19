@@ -1,0 +1,23 @@
+TICKET-010
+Status: done
+
+Problem:
+- README no longer matched the app (no mention of room links, retry, mute all, rejoin, latency indicator, dark mode).
+- Final sanity check: verify every DOM id referenced in the JS exists in the HTML.
+
+Requested changes:
+- Update README.md to document new features (room link, retry, mute all/rejoin, latency indicator, dark mode).
+- Sanity-check that all JS-referenced element IDs exist in index.html.
+- Fix anything found.
+
+Plan:
+- Backup current project to backups/backup010/ (index.html + README.md).
+- Rewrite relevant README sections.
+- Run a DOM-id cross-check.
+- Update ticket status to done.
+
+Summary:
+- README documents Room link, Retry, Mute all, Rejoin room, Latency indicator, and Dark mode.
+- DOM-id cross-check passed: all 27 statically referenced ids exist in index.html (missing: NONE).
+- Backup saved to backups/backup010/.
+

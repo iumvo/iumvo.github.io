@@ -1,0 +1,17 @@
+TICKET-005
+Status: planned
+
+Problem:
+- The room name lives only in a local input; friends must be told the room name out-of-band to open the same room.
+
+Requested changes:
+- Read ?room= from the query string on load and pre-fill the room input.
+- Show a copyable "room link" (current URL with ?room=NAME) in the lobby.
+- Keep the URL in sync as the user edits the room name (no reload).
+
+Plan:
+- Backup current project to backups/backup005/ (index.html + README.md).
+- Add query-string room parsing, a room-link input + Copy button, and history.replaceState sync on input.
+- Update ticket status to done.
+
+Summary:

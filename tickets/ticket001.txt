@@ -1,0 +1,22 @@
+TICKET-001
+Status: done
+
+Problem:
+- The Copy button next to offer/answer textareas is tiny and easy to miss.
+- SDP textareas are small (48px), making long offer/answer blobs hard to read, select, and copy.
+
+Requested changes:
+1. Make offer/answer textareas larger (taller) and monospace for easier copying.
+2. Add a prominent "Copy offer" / "Copy answer" button next to each SDP textarea.
+
+Plan:
+- Backup current project to backups/backup001/ (index.html + README.md).
+- Enlarge SDP textareas; restyle copy button to be prominent with a clear label.
+- Verify by opening index.html.
+- Update ticket status to done.
+
+Summary:
+- SDP textareas enlarged (min-height 130px) and remain monospace for easier copying.
+- Copy button restyled to be prominent (larger, bordered, hover state) and labeled "Copy offer" / "Copy answer".
+- Backup saved to backups/backup001/.
+

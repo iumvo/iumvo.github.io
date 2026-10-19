@@ -1,0 +1,19 @@
+TICKET-003
+Status: done
+
+Problem:
+- When microphone access is denied/unavailable, the error is a generic technical message with no guidance on how to fix it.
+
+Requested changes:
+- Classify mic errors (permission denied, no mic found, busy device) and show a clear, human-readable message.
+- Include concrete steps to fix (e.g. click the lock icon in the address bar, allow mic, reload).
+
+Plan:
+- Backup current project to backups/backup003/ (index.html + README.md).
+- Improve initMic() to classify getUserMedia errors and throw actionable messages.
+- Update ticket status to done.
+
+Summary:
+- initMic() now classifies getUserMedia errors (NotAllowedError / NotFoundError / NotReadableError / TypeError) and throws actionable hints (allow mic via lock icon, plug in mic, close other apps, use HTTPS).
+- Backup saved to backups/backup003/.
+

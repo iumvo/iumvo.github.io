@@ -1,0 +1,20 @@
+TICKET-009
+Status: done
+
+Problem:
+- The app is dark-only; users who prefer a light theme have no option.
+
+Requested changes:
+- Add a dark/light mode toggle, remembering the choice in localStorage.
+
+Plan:
+- Backup current project to backups/backup009/ (index.html + README.md).
+- Add theme toggle button in the header + .light CSS overrides.
+- Persist choice via localStorage; apply on load.
+- Update ticket status to done.
+
+Summary:
+- Added ☀️/🌙 theme toggle in the header with .light CSS overrides (cards, tiles, inputs, badges, footer, copy button, room-full banner).
+- Choice persisted in localStorage (iumi-theme) and applied on load.
+- Backup saved to backups/backup009/.
+

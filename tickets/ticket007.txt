@@ -1,0 +1,21 @@
+TICKET-007
+Status: done
+
+Problem:
+- There is no indication of connection quality or latency between peers, so a failing/slow connection is invisible.
+
+Requested changes:
+- Show a latency indicator (RTT) and a qualitative label (Good / Fair / Poor) for the active peer connections.
+
+Plan:
+- Backup current project to backups/backup007/ (index.html + README.md).
+- Add updateLatency() using RTCPeerConnection.getStats() selected candidate-pair currentRoundTripTime.
+- Run it every second while in the room; display in the room header, color-coded by quality.
+- Stop the timer on leave.
+- Update ticket status to done.
+
+Summary:
+- Added updateLatency() which reads RTCPeerConnection.getStats() selected candidate-pair RTT (currentRoundTripTime / googRtt).
+- Shows "↻ Nms · Good/Fair/Poor" color-coded in the room header, refreshed every second while in the room; timer stopped and indicator hidden on leave.
+- Backup saved to backups/backup007/.
+

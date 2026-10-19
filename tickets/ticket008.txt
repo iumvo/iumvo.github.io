@@ -1,0 +1,21 @@
+TICKET-008
+Status: done
+
+Problem:
+- No real mobile devices are available for testing, but the UI should still be touch-friendly and readable on narrow screens (Safari iOS, Chrome Android).
+
+Requested changes:
+- Remove mobile tap delay on buttons (touch-action: manipulation).
+- Stack offer/answer label + textarea on narrow screens so long SDP text stays usable.
+- Slightly tighter padding on small screens.
+
+Plan:
+- Backup current project to backups/backup008/ (index.html + README.md).
+- Add touch-action to buttons and a @media (max-width: 480px) block.
+- Update ticket status to done.
+
+Summary:
+- Buttons got touch-action: manipulation to remove mobile tap delay.
+- Added @media (max-width: 480px): tighter padding, stacked sdpbox label/textarea, smaller textarea min-height on narrow screens.
+- Backup saved to backups/backup008/.
+

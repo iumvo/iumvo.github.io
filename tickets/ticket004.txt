@@ -1,0 +1,22 @@
+TICKET-004
+Status: done
+
+Problem:
+- When a peer connection fails, the card shows "Failed" with only a "Remove" button. There is no way to retry/refresh the offer without reloading the page.
+
+Requested changes:
+- Add a "Retry" button on failed peer cards that regenerates the offer (or re-applies the stored remote offer for answerers).
+
+Plan:
+- Backup current project to backups/backup004/ (index.html + README.md).
+- Store the remote offer SDP on answerer peers so a retry can re-use it.
+- Add refreshPeer() that closes the old PC and recreates the offer/answer.
+- Add a "Retry" button shown on failed peer cards.
+- Update ticket status to done.
+
+Summary:
+- Answerer peers now store the remote offer SDP (p.remoteSdp) so a retry can re-use it.
+- Added refreshPeer() which closes the old PC and recreates the offer (offerer) or re-applies the stored offer and answer (answerer).
+- A gray "Retry" button is shown on failed peer cards; errors surface in roomErr.
+- Backup saved to backups/backup004/.
+

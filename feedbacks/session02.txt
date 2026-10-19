@@ -1,0 +1,22 @@
+SESSION-02 FEEDBACK (10-ticket session, complete)
+
+What was done this session:
+- ticket001 (DONE): Prominent "Copy offer" / "Copy answer" buttons; SDP textareas enlarged (min-height 130px, monospace).
+- ticket002 (DONE): Prominent red "Room is full (4 people max)" banner in the room section, shown/hidden by peer count.
+- ticket003 (DONE): Microphone error handling classifies getUserMedia errors (NotAllowedError / NotFoundError / NotReadableError / TypeError) and shows actionable fix hints (lock icon, plug in mic, close other apps, HTTPS).
+- ticket004 (DONE): "Retry" button on failed peer cards; answerer peers store the remote offer SDP (p.remoteSdp) so refreshes can re-use it; refreshPeer() recreates the offer/answer.
+- ticket005 (DONE): URL-based room sharing — ?room=NAME pre-fills the room on load; copyable "Room link" in the lobby; URL stays in sync via history.replaceState as the room name is edited.
+- ticket006 (DONE): "Mute all" / "Unmute all" toggle (mutes local mic + all remote audio; new tracks inherit muted state) and "Rejoin room" (leaves and re-enters with same name, fresh offer, keeps mic stream).
+- ticket007 (DONE): Connection quality / latency indicator — "↻ Nms · Good/Fair/Poor" color-coded in the room header via RTCPeerConnection.getStats() selected candidate-pair RTT, refreshed every second while in the room.
+- ticket008 (DONE): Mobile-friendly tweaks — touch-action: manipulation on buttons (no tap delay); @media (max-width: 480px) stacks sdpbox label/textarea, tighter padding.
+- ticket009 (DONE): Dark/light mode toggle in the header, persisted in localStorage (iumi-theme), applied on load.
+- ticket010 (DONE): README updated to document all new features; DOM-id cross-check passed (all 27 statically referenced ids exist in index.html; missing: NONE).
+
+Backups: backups/backup001/ ... backups/backup010/ (index.html + README.md each).
+
+Deploy target: https://iumvo.github.io/ (GitHub Pages). Just push index.html to the repo.
+
+Notes for next session:
+- Still no TURN server — symmetric NAT may fail.
+- Mobile compatibility (Safari iOS, Chrome Android) was not tested on real devices; only layout/touch tweaks were applied.
+- All files chowned 1000:1000 and chmod 666 so they can be edited without sudo.

@@ -19,7 +19,7 @@
   input, textarea { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid #374151; background: #0b1021; color: #e2e8f0; font-size: 0.92rem; }
   input:focus, textarea:focus { outline: 2px solid #3b82f6; border-color: transparent; }
   textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.78rem; resize: vertical; }
-  button { border: none; border-radius: 10px; padding: 10px 14px; font-size: 0.92rem; font-weight: 600; cursor: pointer; color: #fff; background: #3b82f6; }
+  button { border: none; border-radius: 10px; padding: 10px 14px; font-size: 0.92rem; font-weight: 600; cursor: pointer; color: #fff; background: #3b82f6; touch-action: manipulation; }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
   button.out { background: #374151; }
   button.go { background: #22c55e; }
@@ -46,14 +46,47 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
   .sdpbox { display: flex; gap: 7px; margin: 7px 0 3px; align-items: flex-start; }
   .sdpbox > label { flex: 0 0 auto; width: 150px; font-size: 0.78rem; }
-  .sdpbox textarea { flex: 1; min-height: 48px; }
-  .copybtn { width: auto; padding: 0 9px; font-size: 0.78rem; margin-top: 28px; }
+  .sdpbox textarea { flex: 1; min-height: 130px; }
+  .copybtn { width: auto; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #374151; border: 1px solid #4b5563; color: #e2e8f0; margin-top: 6px; }
+  .copybtn:hover { background: #4b5563; border-color: #6b7280; }
+  .copybtn:active { background: #6b7280; }
   .peer { background: #0b1021; border: 1px solid #1f2937; border-radius: 10px; padding: 10px; margin-bottom: 9px; }
   .peer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
   .add-card { border-style: dashed; border-color: #374151; }
   .hint { font-size: 0.76rem; color: #94a3b8; margin-top: 7px; }
   .err { color: #f87171; font-size: 0.78rem; margin-top: 7px; min-height: 1.2em; }
+  .roomfull { background: #7f1d1d; border: 1px solid #991b1b; color: #fecaca; border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; font-weight: 600; text-align: center; margin: 8px 0 0; }
   .full { color: #94a3b8; font-size: 0.8rem; margin-top: 7px; }
+  body.light { background: #f3f4f6; color: #111827; }
+  body.light header { border-bottom-color: #e5e7eb; }
+  body.light .card { background: #ffffff; border-color: #e5e7eb; color: #111827; }
+  body.light .peer, body.light .add-card { background: #ffffff; border-color: #e5e7eb; color: #111827; }
+  body.light .tile { background: #f9fafb; border-color: #e5e7eb; color: #111827; }
+  body.light .tile.me { background: #eff6ff; border-color: #3b82f6; }
+  body.light input, body.light textarea { background: #ffffff; color: #111827; border-color: #d1d5db; }
+  body.light input:focus, body.light textarea:focus { outline-color: #3b82f6; }
+  body.light button.out { background: #e5e7eb; color: #111827; }
+  body.light button.go { background: #16a34a; }
+  body.light button.danger { background: #dc2626; }
+  body.light .dot { background: #9ca3af; }
+  body.light .hint { color: #6b7280; }
+  body.light .err { color: #dc2626; }
+  body.light .badge { background: #e5e7eb; color: #374151; }
+  body.light .badge.connected { background: #15803d; color: #ecfdf5; }
+  body.light .full { color: #6b7280; }
+  body.light footer { color: #6b7280; border-color: #e5e7eb; }
+  body.light footer a { color: #2563eb; }
+  body.light .roomfull { background: #7f1d1d; color: #fca5a5; border-color: #991b1b; }
+  body.light .copybtn { background: #e5e7eb; color: #111827; border-color: #d1d5db; }
+  body.light .copybtn:hover { background: #d1d5db; }
+  body.light .tag { color: #6b7280; }
+  @media (max-width: 480px) {
+    .wrap { padding: 10px; }
+    header { padding: 20px 0 10px; }
+    .sdpbox { flex-direction: column; align-items: stretch; }
+    .sdpbox > label { width: auto !important; margin-bottom: 4px; }
+    .sdpbox textarea { min-height: 100px; }
+  }
   footer { margin-top: auto; padding: 18px 0 6px; color: #64748b; font-size: 0.72rem; text-align: center; border-top: 1px solid #1f2937; }
   footer a { color: #3b82f6; text-decoration: none; }
 </style>
@@ -62,6 +95,7 @@
 <div class="wrap">
   <header>
     <h1>🎙️ Voice Room</h1>
+    <button id="btnTheme" class="out sm" style="margin-top:6px">☀️ Light mode</button>
     <p class="tag">Serverless push-to-talk voice chat · max 4 people · no accounts · nothing to maintain</p>
   </header>
 
@@ -73,6 +107,8 @@
     </div>
     <button id="btnCreate" class="go">Create room</button>
     <div class="hint">No signaling server, so you exchange offer/answer text directly (copy &amp; paste).</div>
+    <div class="row"><input id="roomLink" readonly placeholder="Room link — share this so friends open the same room"></div>
+    <button type="button" id="btnCopyLink" class="go sm" style="width:auto">Copy room link</button>
     <textarea id="joinOffer" placeholder="Paste someone's offer here to join them…"></textarea>
     <div class="row">
       <button id="btnJoin" class="out">Connect with their offer</button>
@@ -84,13 +120,18 @@
   <section class="card hidden" id="room">
     <div class="row" style="justify-content: space-between; align-items: center;">
       <div><label>Room</label><span id="roomName" style="font-weight:600"></span></div>
-      <div style="text-align:right"><label style="margin-bottom:0">You</label><span id="meName" style="font-weight:600"></span></div>
+      <div style="text-align:right"><label style="margin-bottom:0">You</label><span id="meName" style="font-weight:600"></span><span id="latency" style="font-size:0.72rem;color:#94a3b8;margin-left:10px" hidden>↻ — ms</span></div>
     </div>
+    <div id="roomFull" class="roomfull hidden">🚫 Room is full (4 people max) — no more connections can be added.</div>
     <div class="micbar">
       <span id="micLabel" style="font-size:0.85rem;color:#94a3b8">🔇 Mic muted — hold to speak</span>
       <div class="dot" id="micDot"></div>
     </div>
     <button id="btnPTT" class="ptt">Hold to speak</button>
+    <div style="display:flex;gap:7px;margin:8px 0">
+      <button type="button" id="btnMuteAll" class="out">Mute all</button>
+      <button type="button" id="btnRejoin" class="out">Rejoin room</button>
+    </div>
     <div class="grid" id="tiles"></div>
     <div class="err" id="roomErr"></div>
 
@@ -123,12 +164,50 @@
   let myName = 'You';
   let roomName = 'main';
   let peers = new Map(); // id -> {id,name,role,pc,status,mySdp,audioEl}
+  let allMuted = false;
+  let latencyTimer = null;
+  let darkMode = true;
+  const savedTheme = localStorage.getItem('iumi-theme');
+  if (savedTheme === 'light') darkMode = false;
+  if (!darkMode) document.body.classList.add('light');
+  const $btnTheme = $('btnTheme');
+  if ($btnTheme) $btnTheme.textContent = darkMode ? '☀️ Light mode' : '🌙 Dark mode';
 
   const $ = id => document.getElementById(id);
 
   // Default values (set once on load)
   $('nick').value = 'Kabanchik' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
   $('room').value = 'IUMIUMIUM';
+
+  // ---------- URL-based room sharing ----------
+  // ?room=NAME pre-fills the room so friends can open the same room.
+  const urlParams = new URLSearchParams(location.search);
+  const urlRoom = urlParams.get('room');
+  if (urlRoom) $('room').value = urlRoom;
+
+  function roomUrl() {
+    const u = new URL(location.origin + location.pathname);
+    u.searchParams.set('room', $('room').value);
+    return u.toString();
+  }
+  function updateRoomLink() { $('roomLink').value = roomUrl(); }
+
+  updateRoomLink();
+  $('room').addEventListener('input', () => {
+    history.replaceState(null, '', roomUrl());
+    updateRoomLink();
+  });
+
+  $('btnCopyLink').onclick = () => {
+    const ta = $('roomLink');
+    ta.select();
+    try {
+      navigator.clipboard.writeText(ta.value);
+      const old = $('btnCopyLink').textContent;
+      $('btnCopyLink').textContent = 'Copied!';
+      setTimeout(() => { if ($('btnCopyLink')) $('btnCopyLink').textContent = old; }, 1200);
+    } catch (e) {}
+  };
 
   // ---------- errors ----------
   function showErr(id, msg) {
@@ -148,7 +227,17 @@
       localTrack = localStream.getAudioTracks()[0];
       localTrack.enabled = false; // start muted
     } catch (err) {
-      throw new Error('Microphone access denied or unavailable: ' + err.message);
+      let hint = 'Check your microphone and reload the page.';
+      if (err.name === 'NotAllowedError') {
+        hint = 'Microphone access was denied. Click the lock icon (🔒) in the address bar, allow microphone access, then reload this page.';
+      } else if (err.name === 'NotFoundError') {
+        hint = 'No microphone was found on this device. Plug in a microphone or headset and reload.';
+      } else if (err.name === 'NotReadableError') {
+        hint = 'The microphone could not be read — it may be in use by another app. Close other apps using the mic and reload.';
+      } else if (err.name === 'TypeError') {
+        hint = 'The browser could not access audio input. Try reloading on a secure page (HTTPS).';
+      }
+      throw new Error('Microphone access failed — ' + hint);
     }
   }
 
@@ -201,6 +290,7 @@
     }
     el.srcObject = new MediaStream([track]);
     el.play().catch(() => {});
+    if (allMuted) { el.muted = true; el.volume = 0; }
     const tile = document.getElementById('tile-' + p.id);
     if (tile && !tile.contains(el)) tile.appendChild(el);
     p.audioEl = el;
@@ -252,6 +342,7 @@
     if (!id) id = genId();
     const p = { id, name, role: 'answerer', pc: null, status: 'connecting', mySdp: null, audioEl: null };
     peers.set(id, p);
+    p.remoteSdp = offerSdp; // keep the offer so a retry can re-use it
     renderPeer(p);
     const pc = newPC(p);
     try {
@@ -277,6 +368,114 @@
     await p.pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
     p.status = 'connected';
     renderPeer(p);
+  }
+
+  // Retry a failed connection: close the old peer connection and recreate the offer/answer.
+  async function refreshPeer(id) {
+    const p = peers.get(id);
+    if (!p) return;
+    clearErr('roomErr');
+    try {
+      if (p.pc) { try { p.pc.close(); } catch (e) {} }
+      p.status = 'connecting';
+      p.mySdp = null;
+      renderPeer(p);
+      const pc = newPC(p);
+      if (p.role === 'offerer') {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        await waitIceComplete(pc);
+        p.mySdp = pc.localDescription.sdp;
+        p.status = 'waiting-answer';
+      } else if (p.role === 'answerer') {
+        if (!p.remoteSdp) throw new Error('No stored offer — ask them to send their offer again.');
+        await pc.setRemoteDescription({ type: 'offer', sdp: p.remoteSdp });
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await waitIceComplete(pc);
+        p.mySdp = pc.localDescription.sdp;
+        p.status = 'waiting-them';
+      }
+      renderPeer(p);
+    } catch (err) {
+      p.status = 'failed';
+      renderPeer(p);
+      showErr('roomErr', 'Retry failed: ' + err.message);
+    }
+  }
+
+  // Mute the local mic and all remote audio at once (toggle).
+  function toggleMuteAll() {
+    allMuted = !allMuted;
+    if (localTrack) localTrack.enabled = false; // local mic stays push-to-talk only
+    for (const [, p] of peers) {
+      const el = p.audioEl || document.getElementById('aud-' + p.id);
+      if (el) { el.muted = allMuted; el.volume = allMuted ? 0 : 1; }
+    }
+    renderMic();
+    const btn = $('btnMuteAll');
+    if (btn) btn.textContent = allMuted ? 'Unmute all' : 'Mute all';
+  }
+
+  // Leave and re-enter the room with the same name, creating a fresh offer.
+  async function rejoinRoom() {
+    clearErr('roomErr');
+    try {
+      await initMic(); // no re-prompt if microphone was already permitted
+    } catch (e) {
+      showErr('roomErr', 'Microphone access failed: ' + e.message);
+      return;
+    }
+    for (const [, p] of peers) { try { p.pc.close(); } catch (e) {} }
+    peers.clear();
+    allMuted = false;
+    const btn = $('btnMuteAll');
+    if (btn) btn.textContent = 'Mute all';
+    render();
+    try {
+      if (peers.size < MAX_PEERS) {
+        await makeOffer(null, 'Person 2');
+      }
+    } catch (e) {
+      showErr('roomErr', 'Failed to create offer: ' + e.message);
+    }
+  }
+
+  function toggleTheme() {
+    darkMode = !darkMode;
+    document.body.classList.toggle('light', !darkMode);
+    localStorage.setItem('iumi-theme', darkMode ? 'dark' : 'light');
+    const btn = $('btnTheme');
+    if (btn) btn.textContent = darkMode ? '☀️ Light mode' : '🌙 Dark mode';
+  }
+
+  // Latency / connection quality indicator via WebRTC stats (RTT of the selected candidate pair).
+  async function updateLatency() {
+    let maxRttMs = null;
+    for (const [, p] of peers) {
+      const pc = p.pc;
+      if (!pc) continue;
+      try {
+        const stats = await pc.getStats();
+        for (const [, s] of stats) {
+          if (s.type !== 'candidate-pair' || s.state !== 'selected') continue;
+          const rttSec = s.currentRoundTripTime ?? s.googRtt;
+          if (rttSec == null) continue;
+          const rttMs = Math.round(rttSec * 1000);
+          if (maxRttMs === null || rttMs > maxRttMs) maxRttMs = rttMs;
+        }
+      } catch (e) {}
+    }
+    const el = $('latency');
+    if (!el) return;
+    if (maxRttMs == null) { el.hidden = true; return; }
+    let quality = 'Good';
+    let color = '#22c55e';
+    if (maxRttMs > 300) { quality = 'Poor'; color = '#ef4444'; }
+    else if (maxRttMs > 150) { quality = 'Fair'; color = '#eab308'; }
+    el.textContent = `↻ ${maxRttMs}ms · ${quality}`;
+    el.style.color = color;
+    el.hidden = false;
   }
 
   function dropPeer(id) {
@@ -332,7 +531,7 @@
     }
   }
 
-  function sdpRow(labelText, value, readonly) {
+  function sdpRow(labelText, value, readonly, kind) {
     const wrap = document.createElement('div');
     wrap.className = 'sdpbox';
     const lab = document.createElement('label');
@@ -356,7 +555,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'copybtn';
-      btn.textContent = 'Copy';
+      btn.textContent = kind === 'offer' ? 'Copy offer' : 'Copy answer';
       btn.onclick = () => {
         ta.select();
         try { navigator.clipboard.writeText(ta.value); } catch (e) {}
@@ -386,11 +585,19 @@
     drop.textContent = 'Remove';
     drop.onclick = () => dropPeer(p.id);
     head.appendChild(drop);
+    if (p.status === 'failed') {
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'out sm';
+      retry.textContent = 'Retry';
+      retry.onclick = () => refreshPeer(p.id);
+      head.appendChild(retry);
+    }
     card.innerHTML = '';
     card.appendChild(head);
 
     if (p.role === 'offerer' && p.status === 'waiting-answer') {
-      card.appendChild(sdpRow(`Your offer → send to ${escapeHtml(p.name)}:`, p.mySdp, true));
+      card.appendChild(sdpRow(`Your offer → send to ${escapeHtml(p.name)}:`, p.mySdp, true, 'offer'));
       const ansWrap = document.createElement('div');
       ansWrap.className = 'sdpbox';
       const lab = document.createElement('label');
@@ -417,7 +624,7 @@
       card.appendChild(ansWrap);
     }
     if (p.role === 'answerer' && p.status === 'waiting-them') {
-      card.appendChild(sdpRow(`Your answer → send to ${escapeHtml(p.name)}:`, p.mySdp, true));
+      card.appendChild(sdpRow(`Your answer → send to ${escapeHtml(p.name)}:`, p.mySdp, true, 'answer'));
     }
   }
 
@@ -473,6 +680,9 @@
   }
 
   function render() {
+    const full = peers.size >= MAX_PEERS;
+    const roomFull = $('roomFull');
+    if (roomFull) roomFull.hidden = !full;
     renderTiles();
     renderPeersPanel();
     renderMic();
@@ -487,13 +697,19 @@
     clearErr('lobbyErr');
     clearErr('roomErr');
     render();
+    latencyTimer = setInterval(updateLatency, 1000);
+    updateLatency();
   }
 
   function leaveRoom() {
+    if (latencyTimer) { clearInterval(latencyTimer); latencyTimer = null; }
+    const lat = $('latency');
+    if (lat) lat.hidden = true;
     for (const [, p] of peers) {
       try { p.pc.close(); } catch (e) {}
     }
     peers.clear();
+    allMuted = false;
     if (localTrack) localTrack.enabled = false;
     renderMic();
     $('room').classList.add('hidden');
@@ -543,6 +759,9 @@
   $('btnCreate').onclick = handleCreate;
   $('btnJoin').onclick = handleJoin;
   $('btnLeave').onclick = leaveRoom;
+  $('btnMuteAll').onclick = toggleMuteAll;
+  $('btnRejoin').onclick = rejoinRoom;
+  $('btnTheme').onclick = toggleTheme;
 
   const ptt = $('btnPTT');
   ptt.addEventListener('pointerdown', startPTT);

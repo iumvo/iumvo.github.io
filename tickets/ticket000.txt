@@ -1,0 +1,25 @@
+TICKET-000
+Status: done
+
+Problem:
+- After clicking "Create room", no offer text is shown to share with others.
+- Username field has no default value (user must type each time).
+- Room name field defaults to "main" instead of "IUMIUMIUM".
+
+Requested changes:
+1. Default username: "Kabanchik" + random 3-digit number (e.g. Kabanchik042), regenerated on every page load.
+2. Default room name: "IUMIUMIUM".
+3. On room creation, automatically generate an offer to share so the text blob appears immediately (no extra click needed).
+
+Plan:
+- Backup current project to backups/backup000/
+- Set default values for nick and room inputs via JS on load.
+- In handleCreate(), after enterRoom(), automatically call makeOffer() so an offer is created and shown.
+- Verify the fix.
+- Update ticket status to done.
+
+Summary:
+- Default username set to "Kabanchik" + random 3-digit (e.g. Kabanchik042), regenerated on each page load.
+- Default room name set to "IUMIUMIUM".
+- handleCreate() now automatically calls makeOffer() after entering the room, so an offer text blob is shown immediately to share with others.
+- Backup saved to backups/backup000/

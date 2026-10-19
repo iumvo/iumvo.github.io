@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IUM Voice Room</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #0b1021; color: #e2e8f0; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+  .wrap { max-width: 700px; margin: 0 auto; padding: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+  header { text-align: center; padding: 26px 0 12px; border-bottom: 1px solid #1f2937; margin-bottom: 16px; }
+  h1 { font-size: 1.35rem; margin-bottom: 6px; letter-spacing: -0.4px; }
+  .tag { color: #94a3b8; font-size: 0.83rem; }
+  .card { background: #111827; border: 1px solid #1f2937; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 120px; }
+  label { font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.3px; }
+  input, textarea { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid #374151; background: #0b1021; color: #e2e8f0; font-size: 0.92rem; }
+  input:focus, textarea:focus { outline: 2px solid #3b82f6; border-color: transparent; }
+  textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.78rem; resize: vertical; }
+  button { border: none; border-radius: 10px; padding: 10px 14px; font-size: 0.92rem; font-weight: 600; cursor: pointer; color: #fff; background: #3b82f6; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.out { background: #374151; }
+  button.go { background: #22c55e; }
+  button.danger { background: #ef4444; }
+  button.sm { padding: 4px 8px; font-size: 0.78rem; }
+  button.ptt { background: #ef4444; font-size: 1rem; padding: 15px 6px; width: 100%; }
+  button.ptt.on { background: #16a34a; box-shadow: 0 0 0 7px rgba(22,163,74,0.25); }
+  .hidden { display: none !important; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 8px 0 12px; }
+  .tile { background: #0b1021; border: 2px solid #1f2937; border-radius: 12px; padding: 12px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .tile.me { border-color: #3b82f6; background: #0d1730; }
+  .tile.live { border-color: #22c55e; box-shadow: 0 0 14px rgba(34,197,94,0.18); }
+  .tile.waiting { border-color: #64748b; opacity: 0.9; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; background: #1f2937; display: grid; place-items: center; font-weight: 700; font-size: 1.05rem; border: 2px solid #374151; }
+  .tile.me .avatar { border-color: #3b82f6; }
+  .tile.live .avatar { border-color: #22c55e; }
+  .name { font-weight: 600; font-size: 0.85rem; }
+  .badge { font-size: 0.68rem; padding: 1px 7px; border-radius: 10px; background: #374151; color: #cbd5e1; }
+  .badge.connected { background: #166534; color: #bbf7d0; }
+  audio { width: 100%; margin-top: 5px; }
+  .micbar { display: flex; align-items: center; gap: 9px; margin: 8px 0 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #64748b; }
+  .dot.on { background: #ef4444; box-shadow: 0 0 7px #ef4444; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+  .sdpbox { display: flex; gap: 7px; margin: 7px 0 3px; align-items: flex-start; }
+  .sdpbox > label { flex: 0 0 auto; width: 150px; font-size: 0.78rem; }
+  .sdpbox textarea { flex: 1; min-height: 130px; }
+  .copybtn { width: auto; padding: 10px 16px; font-size: 0.9rem; font-weight: 600; background: #374151; border: 1px solid #4b5563; color: #e2e8f0; margin-top: 6px; }
+  .copybtn:hover { background: #4b5563; border-color: #6b7280; }
+  .copybtn:active { background: #6b7280; }
+  .peer { background: #0b1021; border: 1px solid #1f2937; border-radius: 10px; padding: 10px; margin-bottom: 9px; }
+  .peer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+  .add-card { border-style: dashed; border-color: #374151; }
+  .hint { font-size: 0.76rem; color: #94a3b8; margin-top: 7px; }
+  .err { color: #f87171; font-size: 0.78rem; margin-top: 7px; min-height: 1.2em; }
+  .roomfull { background: #7f1d1d; border: 1px solid #991b1b; color: #fecaca; border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; font-weight: 600; text-align: center; margin: 8px 0 0; }
+  .full { color: #94a3b8; font-size: 0.8rem; margin-top: 7px; }
+  footer { margin-top: auto; padding: 18px 0 6px; color: #64748b; font-size: 0.72rem; text-align: center; border-top: 1px solid #1f2937; }
+  footer a { color: #3b82f6; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎙️ Voice Room</h1>
+    <p class="tag">Serverless push-to-talk voice chat · max 4 people · no accounts · nothing to maintain</p>
+  </header>
+
+  <!-- Lobby -->
+  <section class="card" id="lobby">
+    <div class="row">
+      <div><label>Your name</label><input id="nick" placeholder="e.g. Alex"></div>
+      <div><label>Room name</label><input id="room" placeholder="e.g. lunch" value="main"></div>
+    </div>
+    <button id="btnCreate" class="go">Create room</button>
+    <div class="hint">No signaling server, so you exchange offer/answer text directly (copy &amp; paste).</div>
+    <textarea id="joinOffer" placeholder="Paste someone's offer here to join them…"></textarea>
+    <div class="row">
+      <button id="btnJoin" class="out">Connect with their offer</button>
+    </div>
+    <div class="err" id="lobbyErr"></div>
+  </section>
+
+  <!-- Room -->
+  <section class="card hidden" id="room">
+    <div class="row" style="justify-content: space-between; align-items: center;">
+      <div><label>Room</label><span id="roomName" style="font-weight:600"></span></div>
+      <div style="text-align:right"><label style="margin-bottom:0">You</label><span id="meName" style="font-weight:600"></span></div>
+    </div>
+    <div id="roomFull" class="roomfull hidden">🚫 Room is full (4 people max) — no more connections can be added.</div>
+    <div class="micbar">
+      <span id="micLabel" style="font-size:0.85rem;color:#94a3b8">🔇 Mic muted — hold to speak</span>
+      <div class="dot" id="micDot"></div>
+    </div>
+    <button id="btnPTT" class="ptt">Hold to speak</button>
+    <div class="grid" id="tiles"></div>
+    <div class="err" id="roomErr"></div>
+
+    <div class="peer">
+      <div class="peer-head"><strong>Signaling</strong> <span style="font-size:0.78rem;color:#94a3b8">exchange these with the other people</span></div>
+      <div id="peersContainer"></div>
+    </div>
+
+    <button id="btnLeave" class="danger">Leave room</button>
+  </section>
+
+  <footer>
+    Peer-to-peer via WebRTC. Nothing is recorded or stored. Offer/answer text is exchanged by you directly. Uses free public STUN servers only — no server, no sign-up.
+    <br>
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API" target="_blank" rel="noopener">About WebRTC</a>
+  </footer>
+</div>
+<script>
+(() => {
+  const MAX_PEERS = 3;
+  const STUN_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+  ];
+
+  let localStream = null;
+  let localTrack = null;
+  let myId = null;
+  let myName = 'You';
+  let roomName = 'main';
+  let peers = new Map(); // id -> {id,name,role,pc,status,mySdp,audioEl}
+
+  const $ = id => document.getElementById(id);
+
+  // Default values (set once on load)
+  $('nick').value = 'Kabanchik' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+  $('room').value = 'IUMIUMIUM';
+
+  // ---------- errors ----------
+  function showErr(id, msg) {
+    const el = $(id);
+    if (el) { el.textContent = msg; el.hidden = false; }
+  }
+  function clearErr(id) {
+    const el = $(id);
+    if (el) { el.textContent = ''; el.hidden = true; }
+  }
+
+  // ---------- microphone / push-to-talk ----------
+  async function initMic() {
+    if (localStream) return;
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      localTrack = localStream.getAudioTracks()[0];
+      localTrack.enabled = false; // start muted
+    } catch (err) {
+      let hint = 'Check your microphone and reload the page.';
+      if (err.name === 'NotAllowedError') {
+        hint = 'Microphone access was denied. Click the lock icon (🔒) in the address bar, allow microphone access, then reload this page.';
+      } else if (err.name === 'NotFoundError') {
+        hint = 'No microphone was found on this device. Plug in a microphone or headset and reload.';
+      } else if (err.name === 'NotReadableError') {
+        hint = 'The microphone could not be read — it may be in use by another app. Close other apps using the mic and reload.';
+      } else if (err.name === 'TypeError') {
+        hint = 'The browser could not access audio input. Try reloading on a secure page (HTTPS).';
+      }
+      throw new Error('Microphone access failed — ' + hint);
+    }
+  }
+
+  function setMic(on) {
+    if (!localTrack) return;
+    localTrack.enabled = on;
+    renderMic();
+  }
+
+  function renderMic() {
+    const on = !!(localTrack && localTrack.enabled);
+    const dot = $('micDot');
+    const label = $('micLabel');
+    const btn = $('btnPTT');
+    if (dot) dot.className = 'dot ' + (on ? 'on' : '');
+    if (label) label.textContent = on ? '🎙️ Mic LIVE — release to mute' : '🔇 Mic muted — hold to speak';
+    if (btn) btn.className = 'ptt ' + (on ? 'on' : '');
+  }
+
+  function startPTT() {
+    if (localTrack && !localTrack.enabled) setMic(true);
+  }
+  function stopPTT() {
+    if (localTrack && localTrack.enabled) setMic(false);
+  }
+
+  // ---------- WebRTC helpers ----------
+  function waitIceComplete(pc) {
+    return new Promise(resolve => {
+      if (pc.iceGatheringState === 'complete') { resolve(); return; }
+      const onChange = () => {
+        if (pc.iceGatheringState === 'complete') {
+          pc.removeEventListener('icegatheringstatechange', onChange);
+          resolve();
+        }
+      };
+      pc.addEventListener('icegatheringstatechange', onChange);
+      setTimeout(resolve, 10000); // safety net
+    });
+  }
+
+  function attachTrack(p, track) {
+    let el = document.getElementById('aud-' + p.id);
+    if (!el) {
+      el = document.createElement('audio');
+      el.id = 'aud-' + p.id;
+      el.autoplay = true;
+      el.playsInline = true;
+      el.muted = false;
+    }
+    el.srcObject = new MediaStream([track]);
+    el.play().catch(() => {});
+    const tile = document.getElementById('tile-' + p.id);
+    if (tile && !tile.contains(el)) tile.appendChild(el);
+    p.audioEl = el;
+  }
+
+  function newPC(p) {
+    const pc = new RTCPeerConnection({ iceServers: STUN_SERVERS });
+    pc.addTrack(localTrack, localStream);
+    p.pc = pc;
+    pc.ontrack = (e) => {
+      const track = e.track || (e.streams[0] && e.streams[0].getTracks()[0]);
+      if (track) attachTrack(p, track);
+    };
+    pc.oniceconnectionstatechange = () => {
+      const s = pc.iceConnectionState;
+      p.status = s === 'connected' ? 'connected'
+        : (s === 'failed' || s === 'disconnected' ? 'disconnected' : s);
+      render();
+    };
+    return pc;
+  }
+
+  function genId() { return Math.random().toString(36).slice(2, 9); }
+
+  // You initiate the connection: create an offer to send to someone
+  async function makeOffer(id, name) {
+    if (!id) id = genId();
+    const p = { id, name, role: 'offerer', pc: null, status: 'connecting', mySdp: null, audioEl: null };
+    peers.set(id, p);
+    renderPeer(p);
+    const pc = newPC(p);
+    try {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await waitIceComplete(pc);
+      p.mySdp = pc.localDescription.sdp;
+      p.status = 'waiting-answer';
+      renderPeer(p);
+      return p.mySdp;
+    } catch (err) {
+      p.status = 'failed';
+      renderPeer(p);
+      throw err;
+    }
+  }
+
+  // Someone offered to you: create an answer to send back
+  async function makeAnswer(id, name, offerSdp) {
+    if (!id) id = genId();
+    const p = { id, name, role: 'answerer', pc: null, status: 'connecting', mySdp: null, audioEl: null };
+    peers.set(id, p);
+    p.remoteSdp = offerSdp; // keep the offer so a retry can re-use it
+    renderPeer(p);
+    const pc = newPC(p);
+    try {
+      await pc.setRemoteDescription({ type: 'offer', sdp: offerSdp });
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await waitIceComplete(pc);
+      p.mySdp = pc.localDescription.sdp;
+      p.status = 'waiting-them';
+      renderPeer(p);
+      return p.mySdp;
+    } catch (err) {
+      p.status = 'failed';
+      renderPeer(p);
+      throw err;
+    }
+  }
+
+  // Apply an answer someone sent back to your offer
+  async function applyAnswer(id, answerSdp) {
+    const p = peers.get(id);
+    if (!p) throw new Error('unknown peer');
+    await p.pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+    p.status = 'connected';
+    renderPeer(p);
+  }
+
+  // Retry a failed connection: close the old peer connection and recreate the offer/answer.
+  async function refreshPeer(id) {
+    const p = peers.get(id);
+    if (!p) return;
+    clearErr('roomErr');
+    try {
+      if (p.pc) { try { p.pc.close(); } catch (e) {} }
+      p.status = 'connecting';
+      p.mySdp = null;
+      renderPeer(p);
+      const pc = newPC(p);
+      if (p.role === 'offerer') {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        await waitIceComplete(pc);
+        p.mySdp = pc.localDescription.sdp;
+        p.status = 'waiting-answer';
+      } else if (p.role === 'answerer') {
+        if (!p.remoteSdp) throw new Error('No stored offer — ask them to send their offer again.');
+        await pc.setRemoteDescription({ type: 'offer', sdp: p.remoteSdp });
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await waitIceComplete(pc);
+        p.mySdp = pc.localDescription.sdp;
+        p.status = 'waiting-them';
+      }
+      renderPeer(p);
+    } catch (err) {
+      p.status = 'failed';
+      renderPeer(p);
+      showErr('roomErr', 'Retry failed: ' + err.message);
+    }
+  }
+
+  function dropPeer(id) {
+    const p = peers.get(id);
+    if (!p) return;
+    try { p.pc.close(); } catch (e) {}
+    const el = document.getElementById('tile-' + id);
+    if (el) el.remove();
+    peers.delete(id);
+    renderTiles();
+    renderPeersPanel();
+  }
+
+  // ---------- rendering ----------
+  function initials(n) { return String(n || '?').slice(0, 2).toUpperCase(); }
+  function escapeHtml(t) {
+    return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function statusLabel(s) {
+    if (s === 'connected') return 'Connected';
+    if (s === 'waiting-answer') return 'Waiting for their answer';
+    if (s === 'waiting-them') return 'Waiting for them';
+    if (s === 'connecting') return 'Connecting…';
+    if (s === 'disconnected') return 'Disconnected';
+    if (s === 'failed') return 'Failed';
+    return s;
+  }
+
+  function renderTiles() {
+    const grid = $('tiles');
+    grid.innerHTML = '';
+    const self = document.createElement('div');
+    self.id = 'tile-me';
+    self.className = 'tile me';
+    const selfAudio = document.createElement('audio');
+    selfAudio.id = 'aud-me';
+    selfAudio.autoplay = true;
+    selfAudio.playsInline = true;
+    selfAudio.muted = true;
+    if (localStream) selfAudio.srcObject = localStream;
+    self.innerHTML = `<div class="avatar">${initials(myName)}</div><div class="name">${escapeHtml(myName)}</div><div class="badge">${localTrack && localTrack.enabled ? 'talking' : 'muted'}</div>`;
+    self.appendChild(selfAudio);
+    grid.appendChild(self);
+
+    for (const [id, p] of peers) {
+      const t = document.createElement('div');
+      t.id = 'tile-' + id;
+      t.className = 'tile ' + (p.status === 'connected' ? 'live' : 'waiting');
+      const audio = p.audioEl || document.createElement('audio');
+      t.innerHTML = `<div class="avatar">${initials(p.name)}</div><div class="name">${escapeHtml(p.name)}</div><div class="badge ${p.status === 'connected' ? 'connected' : ''}">${statusLabel(p.status)}</div>`;
+      t.appendChild(audio);
+      grid.appendChild(t);
+    }
+  }
+
+  function sdpRow(labelText, value, readonly, kind) {
+    const wrap = document.createElement('div');
+    wrap.className = 'sdpbox';
+    const lab = document.createElement('label');
+    lab.textContent = labelText;
+    lab.style.width = '150px';
+    lab.style.flex = '0 0 auto';
+    const ta = document.createElement('textarea');
+    ta.readOnly = readonly;
+    ta.value = value || '';
+    ta.spellcheck = false;
+    wrap.appendChild(lab);
+    wrap.appendChild(ta);
+    if (!readonly) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'go sm';
+      btn.textContent = 'Apply';
+      btn.style = 'width:auto;padding:0 10px;margin-left:8px';
+      wrap.appendChild(btn);
+    } else {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copybtn';
+      btn.textContent = kind === 'offer' ? 'Copy offer' : 'Copy answer';
+      btn.onclick = () => {
+        ta.select();
+        try { navigator.clipboard.writeText(ta.value); } catch (e) {}
+      };
+      wrap.appendChild(btn);
+    }
+    return wrap;
+  }
+
+  function renderPeer(p) {
+    // update existing card or create
+    let card = document.querySelector('.peer-card[data-id="' + p.id + '"]');
+    if (!card) {
+      card = document.createElement('div');
+      card.className = 'peer peer-card';
+      card.dataset.id = p.id;
+      $('peersContainer').appendChild(card);
+    }
+    card.dataset.status = p.status;
+
+    const head = document.createElement('div');
+    head.className = 'peer-head';
+    head.innerHTML = `<strong>${escapeHtml(p.name)}</strong> <span class="badge ${p.status === 'connected' ? 'connected' : ''}">${statusLabel(p.status)}</span>`;
+    const drop = document.createElement('button');
+    drop.type = 'button';
+    drop.className = 'danger sm';
+    drop.textContent = 'Remove';
+    drop.onclick = () => dropPeer(p.id);
+    head.appendChild(drop);
+    if (p.status === 'failed') {
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'out sm';
+      retry.textContent = 'Retry';
+      retry.onclick = () => refreshPeer(p.id);
+      head.appendChild(retry);
+    }
+    card.innerHTML = '';
+    card.appendChild(head);
+
+    if (p.role === 'offerer' && p.status === 'waiting-answer') {
+      card.appendChild(sdpRow(`Your offer → send to ${escapeHtml(p.name)}:`, p.mySdp, true, 'offer'));
+      const ansWrap = document.createElement('div');
+      ansWrap.className = 'sdpbox';
+      const lab = document.createElement('label');
+      lab.textContent = `Paste ${escapeHtml(p.name)}'s answer:`;
+      lab.style.width = '150px';
+      lab.style.flex = '0 0 auto';
+      const ta = document.createElement('textarea');
+      ta.className = 'ans-' + p.id;
+      ta.spellcheck = false;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'go sm';
+      btn.textContent = 'Apply';
+      btn.style = 'width:auto;padding:0 10px;margin-left:8px';
+      btn.onclick = async () => {
+        try {
+          await applyAnswer(p.id, ta.value);
+          render();
+        } catch (e) {
+          showErr('roomErr', 'Failed to apply answer: ' + e.message);
+        }
+      };
+      ansWrap.append(lab, ta, btn);
+      card.appendChild(ansWrap);
+    }
+    if (p.role === 'answerer' && p.status === 'waiting-them') {
+      card.appendChild(sdpRow(`Your answer → send to ${escapeHtml(p.name)}:`, p.mySdp, true, 'answer'));
+    }
+  }
+
+  function renderPeersPanel() {
+    const box = $('peersContainer');
+    // keep existing peer cards; only rebuild the add-person card
+    const existing = box.querySelectorAll('.peer-card');
+    existing.forEach(el => el.remove());
+
+    if (peers.size === 0) {
+      box.insertAdjacentHTML('beforeend', '<div class="hint">No connections yet. Either "Make an offer to share" and send it to someone, or paste someone\'s offer above and click Connect.</div>');
+    }
+    for (const [id, p] of peers) renderPeer(p);
+
+    if (peers.size < MAX_PEERS) {
+      const card = document.createElement('div');
+      card.className = 'peer add-card';
+      card.innerHTML = `
+        <div class="peer-head"><strong>+ Add a person</strong></div>
+        <div style="display:flex;gap:8px;margin-bottom:7px"><input id="npName" placeholder="Their name" style="flex:1"></div>
+        <div class="sdpbox" style="margin-bottom:7px"><label style="width:150px">Paste their offer:</label><textarea id="npOffer"></textarea></div>
+        <button type="button" id="npConnect" class="go" style="width:auto">Connect</button>
+        <button type="button" id="npMakeOffer" class="out" style="width:auto;margin-left:7px">Make an offer to share</button>
+        <div id="npAnswerBox" style="margin-top:7px"></div>
+      `;
+      box.appendChild(card);
+
+      $('npConnect').onclick = async () => {
+        const name = $('npName').value.trim() || 'Peer';
+        const offer = $('npOffer').value.trim();
+        if (!offer) { showErr('roomErr', 'Paste an offer first'); return; }
+        clearErr('roomErr');
+        try {
+          await makeAnswer(null, name, offer);
+          render();
+        } catch (e) {
+          showErr('roomErr', 'Failed to connect: ' + e.message);
+        }
+      };
+
+      $('npMakeOffer').onclick = async () => {
+        if (peers.size >= MAX_PEERS) return;
+        try {
+          await makeOffer(null, 'New person');
+          render();
+        } catch (e) {
+          showErr('roomErr', 'Failed to make offer: ' + e.message);
+        }
+      };
+    } else {
+      box.insertAdjacentHTML('beforeend', '<div class="full">Room is full (4 people max).</div>');
+    }
+  }
+
+  function render() {
+    const full = peers.size >= MAX_PEERS;
+    const roomFull = $('roomFull');
+    if (roomFull) roomFull.hidden = !full;
+    renderTiles();
+    renderPeersPanel();
+    renderMic();
+    if ($('roomName')) $('roomName').textContent = escapeHtml(roomName);
+    if ($('meName')) $('meName').textContent = escapeHtml(myName);
+  }
+
+  // ---------- lobby / room flow ----------
+  function enterRoom() {
+    $('lobby').classList.add('hidden');
+    $('room').classList.remove('hidden');
+    clearErr('lobbyErr');
+    clearErr('roomErr');
+    render();
+  }
+
+  function leaveRoom() {
+    for (const [, p] of peers) {
+      try { p.pc.close(); } catch (e) {}
+    }
+    peers.clear();
+    if (localTrack) localTrack.enabled = false;
+    renderMic();
+    $('room').classList.add('hidden');
+    $('lobby').classList.remove('hidden');
+    clearErr('roomErr');
+    render();
+  }
+
+  async function handleCreate() {
+    clearErr('lobbyErr');
+    myName = $('nick').value.trim() || 'You';
+    roomName = $('room').value.trim() || 'main';
+    myId = genId();
+    try {
+      await initMic();
+      enterRoom();
+      // Automatically create an offer to share so text appears immediately
+      if (peers.size < MAX_PEERS) {
+        try {
+          await makeOffer(null, 'Person 2');
+        } catch (e) {
+          showErr('roomErr', 'Failed to create offer: ' + e.message);
+        }
+      }
+    } catch (e) {
+      showErr('lobbyErr', e.message);
+    }
+  }
+
+  async function handleJoin() {
+    clearErr('lobbyErr');
+    myName = $('nick').value.trim() || 'You';
+    roomName = $('room').value.trim() || 'main';
+    myId = genId();
+    const offer = $('joinOffer').value.trim();
+    if (!offer) { showErr('lobbyErr', 'Paste an offer first'); return; }
+    try {
+      await initMic();
+      await makeAnswer(null, myName, offer);
+      enterRoom();
+    } catch (e) {
+      showErr('lobbyErr', 'Failed to join: ' + e.message);
+    }
+  }
+
+  // ---------- input wiring ----------
+  $('btnCreate').onclick = handleCreate;
+  $('btnJoin').onclick = handleJoin;
+  $('btnLeave').onclick = leaveRoom;
+
+  const ptt = $('btnPTT');
+  ptt.addEventListener('pointerdown', startPTT);
+  ptt.addEventListener('pointerup', stopPTT);
+  ptt.addEventListener('pointercancel', stopPTT);
+  ptt.addEventListener('pointerleave', stopPTT);
+
+  // Spacebar push-to-talk (ignore when typing in inputs)
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space') return;
+    const t = document.activeElement;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    e.preventDefault();
+    startPTT();
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') stopPTT();
+  });
+
+  renderMic();
+})();
+</script>
+</body>
+</html>

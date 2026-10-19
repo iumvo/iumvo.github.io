@@ -1,0 +1,32 @@
+SESSION-01 FEEDBACK (instructions for next 10-ticket session)
+
+What was done this session (ticket000, DONE):
+- Fixed bug: after clicking "Create room", no offer text was shown. Now handleCreate() automatically calls makeOffer() so an offer text blob appears immediately to share.
+- Added default username: "Kabanchik" + random 3-digit number (e.g. Kabanchik042), regenerated on every page load.
+- Added default room name: "IUMIUMIUM".
+- Backup created at backups/backup000/ (index.html + README.md).
+
+Code review notes (verify next session):
+- index.html is a single self-contained file (HTML+CSS+JS). No build step.
+- WebRTC mesh: each peer creates its own RTCPeerConnection. Works for max 4 people.
+- Signaling is manual copy/paste of offer/answer SDP text (no server).
+- Push-to-talk: holds mic while button pressed / Space held; mic muted by default.
+- Uses free public Google STUN servers. No TURN — symmetric NAT may fail.
+
+Possible next tickets (pick up to 10):
+1. Add a "Copy offer" one-click button prominently (currently small Copy button next to textarea).
+2. Show a visual "room full" indicator when 4 peers reached.
+3. Improve error handling when microphone permission is denied (show clear message + how to fix).
+4. Add a reconnect / refresh offer button for failed connections.
+5. Make the offer/answer textareas larger / monospace for easier copying.
+6. Add URL-based room sharing (encode room name in query string) so friends can open same room.
+7. Add a simple "mute all" or "leave and rejoin" flow.
+8. Test on mobile browsers (Safari iOS, Chrome Android) for mic + WebRTC compatibility.
+9. Add a connection quality / latency indicator.
+10. Add dark-mode toggle (currently dark only).
+
+Important: Always create a backup in backups/backupNNN/ before starting each ticket, and update ticketNNN.txt status (planned → doing → done). After 10 tickets, write session02.txt in feedbacks/.
+
+Deploy target: https://iumvo.github.io/ (GitHub Pages). Just push index.html to the repo.
+
+Comment from the user: "Don't forget you are running in docker, so allways when creating files, make right so that all users can access,alter, etc: via chown and/or chmod. (I just don't want to use sudo all the time for editing somethng.) Continue in bunches of tickets: you are on your own, you decide what is important how and what to do."

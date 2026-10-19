@@ -1,0 +1,23 @@
+TICKET-006
+Status: done
+
+Problem:
+- There is no quick way to restart the room session (fresh offers) without reloading the page, and no way to mute everyone's audio at once.
+
+Requested changes:
+- Add a "Rejoin room" button that leaves and re-enters the room with the same name, creating a fresh offer.
+- Add a "Mute all" button that mutes the local mic and all remote audio (toggle).
+
+Plan:
+- Backup current project to backups/backup006/ (index.html + README.md).
+- Add rejoinRoom() (keeps the mic stream, closes peer connections, re-enters, fresh offer).
+- Add toggleMuteAll() (mutes local mic + remote audio elements; toggles back).
+- Add Mute all / Rejoin room buttons in the room section.
+- Update ticket status to done.
+
+Summary:
+- Added "Mute all" / "Unmute all" button (mutes local mic + all remote audio; new audio tracks inherit the muted state).
+- Added "Rejoin room" button (keeps the mic stream, closes all peer connections, re-enters the room, creates a fresh offer).
+- Buttons wired up; allMuted resets on leave.
+- Backup saved to backups/backup006/.
+
